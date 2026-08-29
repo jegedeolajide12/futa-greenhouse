@@ -1,0 +1,1 @@
+web: gunicorn futa-greenhouse.wsgi:application
