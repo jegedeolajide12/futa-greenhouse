@@ -1,0 +1,106 @@
+{% extends "_base.html" %}
+{% block title %}{{ product.name|default:"Product" }} - FUTA Greenhouse{% endblock %}
+{% load static %}
+{% block content %}
+    <main class="container">
+
+        <!-- ========================== -->
+        <!-- BREADCRUMB -->
+        <!-- ========================== -->
+        <div class="breadcrumb">
+            <a href="{% url 'home' %}">Home</a>
+            <span class="separator"><i class="fas fa-chevron-right"></i></span>
+            <a href="{% url 'products:shop' %}">Shop</a>
+            <span class="separator"><i class="fas fa-chevron-right"></i></span>
+            <span class="current">{{ product.name }}</span>
+        </div>
+
+        <!-- ========================== -->
+        <!-- PRODUCT DETAIL -->
+        <!-- ========================== -->
+        <div class="product-detail">
+            <!-- Image Column -->
+            <div class="product-image">
+                <!-- Badge: Grade (left) and discount (right) -->
+                {% if product.badge %}
+                    <span class="badge grade-{{ product.grade|lower }}">{{ product.badge }}</span>
+                {% endif %}
+                {% if product.discount %}
+                    <span class="badge discount" style="left: auto; right: 16px; background: #EF4444;">{{ product.discount }}</span>
+                {% endif %}
+                <img src="{{ product.image }}" alt="{{ product.name }}" loading="lazy" />
+            </div>
+
+            <!-- Info Column -->
+            <div class="product-info">
+                <h1 class="name">{{ product.name }}</h1>
+                <div class="variant">{{ product.variant }}</div>
+
+                <div class="price-wrapper">
+                    <span class="current-price">₦{{ product.price|floatformat:"0" }} <small>/ {{ product.unit }}</small></span>
+                    {% if product.oldPrice %}
+                        <span class="old-price">₦{{ product.oldPrice|floatformat:"0" }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="stock-status {% if product.stock == 'in' %}in-stock{% elif product.stock == 'pre' %}pre-order{% else %}out-of-stock{% endif %}">
+                    {% if product.stock == 'in' %}
+                        <i class="fas fa-circle" style="color: var(--accent-emerald);"></i> In Stock
+                    {% elif product.stock == 'pre' %}
+                        <i class="fas fa-clock" style="color: var(--accent-amber);"></i> Pre-Order
+                    {% else %}
+                        <i class="fas fa-times" style="color: var(--text-muted);"></i> Out of Stock
+                    {% endif %}
+                </div>
+
+                <div class="description">
+                    <p>{{ product.description|linebreaks }}</p>
+                </div>
+
+                <!-- Quantity Selector -->
+                <div class="quantity-selector">
+                    <label for="qtyInput">Quantity:</label>
+                    <div class="qty-control">
+                        <button class="qty-btn" onclick="changeQty(-1)"><i class="fas fa-minus"></i></button>
+                        <input type="number" class="qty-input" id="qtyInput" value="1" min="1" max="99" />
+                        <button class="qty-btn" onclick="changeQty(1)"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <!-- Actions -->
+                <div class="actions">
+                    <button class="btn-primary add-to-cart-btn" data-id="{{ product.id }}">
+                        <i class="fas fa-shopping-bag"></i> Add to Cart
+                    </button>
+                    <button class="btn-outline" onclick="alert('Wishlist coming soon!')">
+                        <i class="far fa-heart"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================== -->
+        <!-- RELATED PRODUCTS -->
+        <!-- ========================== -->
+        {% if related_products %}
+        <section class="related-section">
+            <h2>You might also like</h2>
+            <div class="related-grid">
+                {% for rel in related_products %}
+                <a href="{% url 'products:product_detail' rel.slug %}" class="related-card">
+                    <img src="{{ rel.image }}" alt="{{ rel.name }}" loading="lazy" />
+                    <div class="r-name">{{ rel.name }}</div>
+                    <div class="r-price">₦{{ rel.price|floatformat:"0" }} <small>/ {{ rel.unit }}</small></div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+    </main>
+
+    {% block scripts %}
+        <script src="{% static 'js/product.js' %}"></script>
+    {% endblock %}
+{% endblock %}

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FUTA GreenHouse · Shop</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/base.css' %}" />
+</head>
+<body>
+
+    <!-- ========================== -->
+    <!-- NAVBAR (Full width bg, inner container) -->
+    <!-- ========================== -->
+    <header class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-leaf"></i>FUTA<span>.</span>Green
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="{% url 'products:shop' %}" class="{% if request.resolver_match.url_name == 'shop' %}active{% endif %}">
+                    <i class="fas fa-store"></i> Shop
+                </a></li>
+                <li><a href="{% url 'products:bulk_order' %}" class="{% if request.resolver_match.url_name == 'bulk_order' %}active{% endif %}">
+                    <i class="fas fa-box"></i> Bulk
+                </a></li>
+                <li class="hide-cart"><a href="{% url 'products:cart' %}" class="{% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+                    <i class="fas fa-shopping-bag"></i> Cart
+                </a></li>
+                <li><a href="{% url 'products:orders' %}" class="{% if request.resolver_match.url_name == 'orders' %}active{% endif %}">
+                    <i class="fas fa-list"></i> Orders
+                </a></li>
+
+                <li class="cart-icon" id="cartToggle">
+                    <a href="{% url 'products:cart' %}" class="cart-link">
+                        <i class="fas fa-shopping-bag"></i>
+                        <span class="cart-badge" id="cartCount">0</span>
+                    </a>
+                    <!-- Dropdown -->
+                    <div class="cart-dropdown" id="cartDropdown">
+                        <div class="cart-dropdown-header">
+                            <h4>Your Cart</h4>
+                            <span id="cartItemCount">0 items</span>
+                        </div>
+                        <div class="cart-dropdown-body" id="cartItemsContainer">
+                            <div class="cart-empty">Your cart is empty.</div>
+                        </div>
+                        <div class="cart-dropdown-footer">
+                            <div class="cart-total">Total: <span id="cartTotal">₦0</span></div>
+                            <a href="{% url 'products:checkout' %}" class="btn-checkout">Checkout</a>
+                        </div>
+                    </div>
+                </li>
+
+                <!-- ====== PROFILE / AUTH ====== -->
+                {% if user.is_authenticated %}
+                    <li class="profile-dropdown" id="profileToggle">
+                    <a href="#" class="profile-trigger" onclick="return false;">
+                        <span class="avatar-circle">{{ user.username|make_list|first|upper }}</span>
+                        <i class="fas fa-chevron-down" style="font-size: 0.7rem; margin-left: 4px;"></i>
+                    </a>
+                    <div class="profile-dropdown-menu">
+                        <div class="profile-header">
+                        <span class="avatar-circle large">{{ user.username|make_list|first|upper }}</span>
+                        <div>
+                            <div class="profile-name">{{ user.get_full_name|default:user.username }}</div>
+                            <div class="profile-email">{{ user.email }}</div>
+                        </div>
+                        </div>
+                        <div class="profile-divider"></div>
+                        <a href="{% url 'products:orders' %}" class="profile-link">
+                        <i class="fas fa-list"></i> My Orders
+                        </a>
+                        <form method="post" action="{% url 'account_logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="profile-link logout-btn">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                        </form>
+                    </div>
+                    </li>
+                {% else %}
+                    <li><a href="{% url 'account_login' %}" class="btn-primary" style="padding: 0.4rem 1.8rem; font-size: 0.85rem;">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                    </a></li>
+                {% endif %}
+            </ul>
+            <div class="hamburger" id="hamburger" onclick="toggleNav()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+<!-- ========================== -->
+<!-- LOGOUT CONFIRMATION MODAL -->
+<!-- ========================== -->
+<div id="logoutModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container" style="max-width: 420px;">
+        <div class="modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+            <h2 style="color: var(--accent-red);">
+                <i class="fas fa-sign-out-alt"></i> Confirm Logout
+            </h2>
+            <button class="modal-close" onclick="closeLogoutModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 0.5rem;">
+                Are you sure you want to log out?
+            </p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">
+                You will be redirected to the login page.
+            </p>
+        </div>
+        <div class="modal-footer" style="border-top: none; padding-top: 0;">
+            <button class="btn-outline" onclick="closeLogoutModal()">Cancel</button>
+            <button class="btn-danger" id="confirmLogoutBtn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </div>
+    </div>
+</div>
+
+    <!-- ========================== -->
+    <!-- DJANGO MESSAGES -> TOASTS -->
+    <!-- ========================== -->
+    {% if messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            {% for message in messages %}
+                (function() {
+                    var msg = "{{ message|escapejs }}";
+                    var tag = "{{ message.tags }}";
+                    if (tag === 'success') {
+                        alertSuccess(msg);
+                    } else if (tag === 'error') {
+                        alertError(msg);
+                    } else if (tag === 'warning') {
+                        alertWarning(msg);
+                    } else {
+                        alertInfo(msg);
+                    }
+                })();
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+    <script src="{% static 'js/alert.js' %}"></script>
+    <script>
+        // Cart API endpoints (from Django URLs)
+        const CART_ADD_URL = "{% url 'products:cart_add' %}";
+        const CART_ITEMS_URL = "{% url 'products:cart_items' %}";
+        const CART_REMOVE_URL = "{% url 'products:cart_remove' %}";
+        const CART_UPDATE_URL = "{% url 'products:cart_update' %}";
+        const PLACE_ORDER_URL = "{% url 'products:place_order' %}";
+    </script>
+    <script src="{% static 'js/cart.js' %}"></script>
+    {% block content %}
+    {% endblock %}
+    <script>
+        // ========== PROFILE DROPDOWN TOGGLE (mobile + desktop) ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileToggle = document.getElementById('profileToggle');
+            const dropdownMenu = profileToggle?.querySelector('.profile-dropdown-menu');
+
+            if (profileToggle && dropdownMenu) {
+                // Toggle on click (works on touch devices)
+                profileToggle.addEventListener('click', function(e) {
+                    // Don't close if clicking inside the dropdown
+                    if (dropdownMenu.contains(e.target)) return;
+                    e.stopPropagation();
+                    dropdownMenu.classList.toggle('open');
+                });
+
+                // Close when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!profileToggle.contains(e.target)) {
+                        dropdownMenu.classList.remove('open');
+                    }
+                });
+
+                // Close on Escape key
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') {
+                        dropdownMenu.classList.remove('open');
+                    }
+                });
+            }
+        });
+
+        // ========== LOGOUT CONFIRMATION MODAL ==========
+        function openLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+
+        // Close on overlay click
+        document.getElementById('logoutModal')?.addEventListener('click', function(e) {
+            if (e.target === this) closeLogoutModal();
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeLogoutModal();
+        });
+
+        // Intercept the logout button click
+        document.addEventListener('click', function(e) {
+            const logoutBtn = e.target.closest('.logout-btn');
+            if (!logoutBtn) return;
+
+            // Prevent the default form submission (or link navigation)
+            e.preventDefault();
+
+            // Show the confirmation modal
+            openLogoutModal();
+
+            // Store a reference to the form so we can submit it later
+            const form = logoutBtn.closest('form');
+            if (form) {
+                // Remove any previous click listener on confirm button to avoid duplicate submissions
+                const confirmBtn = document.getElementById('confirmLogoutBtn');
+                // Replace the click event with a new one that submits the form
+                confirmBtn.replaceWith(confirmBtn.cloneNode(true));
+                const newConfirmBtn = document.getElementById('confirmLogoutBtn');
+                newConfirmBtn.addEventListener('click', function() {
+                    // Submit the form
+                    form.submit();
+                    // Optionally disable the button to prevent double clicks
+                    this.disabled = true;
+                    this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+                    // The page will reload/redirect after logout, so no need to close modal
+                });
+            }
+        });
+    </script>
+    
+
+
+    
+    
+</body>
+</html>

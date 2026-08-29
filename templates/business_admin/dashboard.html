@@ -1,0 +1,271 @@
+{% extends "admin_base.html" %}
+{% block title %}FUTA.Green - Dashboard{% endblock %}
+{% load static %}
+{% block content %}
+
+    <!-- ========================== -->
+    <!-- MAIN CONTENT -->
+    <!-- ========================== -->
+    <main class="main-content">
+
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="page-title">
+                <button class="hamburger-toggle" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Dashboard</h1>
+                <p>Welcome back, Admin! Here's what's happening today.</p>
+            </div>
+            <div class="topbar-actions">
+                <span class="notification">
+                    <i class="fas fa-bell"></i>
+                    <span class="dot"></span>
+                </span>
+                <div class="admin-profile">
+                    <span class="avatar">A</span>
+                    <span class="name">Admin</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon amber"><i class="fas fa-shopping-bag"></i></div>
+                <div class="stat-value">{{ total_orders }}</div>
+                <div class="stat-label">Total Orders</div>
+                <span class="stat-change {{ orders_dir }}">
+                    <i class="fas fa-arrow-{{ orders_dir }}"></i>
+                    {% if orders_dir == 'none' %}0%{% else %}{{ orders_change|floatformat:0 }}%{% endif %}
+                </span>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon emerald"><i class="fas fa-dollar-sign"></i></div>
+                <div class="stat-value">₦{{ revenue_this_month|floatformat:"0" }}</div>
+                <div class="stat-label">Revenue (This Month)</div>
+                <span class="stat-change {{ revenue_dir }}">
+                    <i class="fas fa-arrow-{{ revenue_dir }}"></i>
+                    {% if revenue_dir == 'none' %}0%{% else %}{{ revenue_change|floatformat:0 }}%{% endif %}
+                </span>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red"><i class="fas fa-users"></i></div>
+                <div class="stat-value">{{ total_customers }}</div>
+                <div class="stat-label">Total Customers</div>
+                <span class="stat-change {{ customers_dir }}">
+                    <i class="fas fa-arrow-{{ customers_dir }}"></i>
+                    {% if customers_dir == 'none' %}0%{% else %}{{ customers_change|floatformat:0 }}%{% endif %}
+                </span>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-pepper-hot"></i></div>
+                <div class="stat-value">{{ products_available }}</div>
+                <div class="stat-label">Products Available</div>
+                <span class="stat-change {{ products_dir }}">
+                    <i class="fas fa-arrow-{{ products_dir }}"></i>
+                    {% if products_dir == 'none' %}0{% else %}{{ products_change }}{% endif %}
+                </span>
+            </div>
+        </section>
+
+        <!-- Charts Row -->
+        <section class="charts-row">
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-line" style="color: var(--accent-amber);"></i> Weekly Revenue</h3>
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3><i class="fas fa-chart-pie" style="color: var(--accent-emerald);"></i> Order Status</h3>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Orders Table -->
+        <section class="table-card">
+            <div class="table-header">
+                <h3><i class="fas fa-clock" style="color: var(--accent-amber);"></i> Recent Orders</h3>
+                <div class="table-actions">
+                    <input type="text" placeholder="Search orders..." oninput="filterTable(this, 'ordersTable')" />
+                    <button class="btn-sm"><i class="fas fa-plus"></i> Add</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table class="admin-table" id="ordersTable">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Products</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th style="text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td><strong>#{{ order.id }}</strong></td>
+                            <td>{{ order.customer }}</td>
+                            <td>{{ order.products }}</td>
+                            <td>₦{{ order.total|floatformat:"0" }}</td>
+                            <td><span class="status-badge {{ order.status }}">{{ order.status|title }}</span></td>
+                            <td>{{ order.date }}</td>
+                            <td style="text-align: center;">
+                                <button class="action-btn edit"
+                                        data-id="{{ order.id }}"
+                                        data-type="order"
+                                        data-name="{{ order.customer }}"
+                                        data-status="{{ order.status }}"
+                                        data-total="{{ order.total }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete" onclick="openDeleteModal({{ order.id }}, '{{ order.full_name }}', 'order')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7">No orders yet.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Products Inventory Table -->
+        <section class="table-card">
+            <div class="table-header">
+                <h3><i class="fas fa-boxes" style="color: var(--accent-emerald);"></i> Inventory</h3>
+                <div class="table-actions">
+                    <input type="text" placeholder="Search products..." oninput="filterTable(this, 'productsTable')" />
+                    <button class="btn-sm"><i class="fas fa-plus"></i> Add Product</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table class="admin-table" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Variant</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                            <th style="text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inventory %}
+                        <tr>
+                            <td>{{ item.name }}</td>
+                            <td>{{ item.variant }}</td>
+                            <td>₦{{ item.price|floatformat:"0" }}</td>
+                            <td>{{ item.stock }}</td>
+                            <td><span class="status-badge {{ item.status_class }}">{{ item.status_label }}</span></td>
+                            <td style="text-align: center;">
+                                <button class="action-btn edit"
+                                        data-id="{{ item.id }}"
+                                        data-type="product"
+                                        data-name="{{ item.name }}"
+                                        data-price="{{ item.price }}"
+                                        data-stock="{{ item.stock }}"
+                                        data-available="{{ item.is_available|yesno:"true,false" }}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete" onclick="openDeleteModal({{ item.id }}, '{{ item.name }}', 'product')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6">No products available.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================== -->
+    <!-- EDIT MODAL -->
+    <!-- ========================== -->
+    <div id="editModal" class="modal-overlay" style="display: none;">
+        <div class="modal-container" style="max-width: 520px;">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> Edit <span id="editModalTitle">Item</span></h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="editId" value="">
+                    <input type="hidden" id="editType" value="">
+
+                    <!-- Common fields (for both) -->
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="editName" class="form-control" readonly disabled />
+                    </div>
+
+                    <!-- Order-specific fields -->
+                    <div id="orderFields" style="display: none;">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="editStatus" class="form-control">
+                                <option value="pending">Pending</option>
+                                <option value="paid">Paid</option>
+                                <option value="shipped">Shipped</option>
+                                <option value="delivered">Delivered</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Total</label>
+                            <input type="text" id="editTotal" class="form-control" readonly disabled />
+                        </div>
+                    </div>
+
+                    <!-- Product-specific fields -->
+                    <div id="productFields" style="display: none;">
+                        <div class="form-group">
+                            <label>Price (₦)</label>
+                            <input type="number" id="editPrice" class="form-control" step="0.01" min="0" />
+                        </div>
+                        <div class="form-group">
+                            <label>Stock</label>
+                            <input type="number" id="editStock" class="form-control" min="0" />
+                        </div>
+                        <div class="form-group">
+                            <label><input type="checkbox" id="editAvailable" /> Available</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" onclick="closeEditModal()">Cancel</button>
+                <button class="btn-primary" id="saveEditBtn" onclick="saveEdit()">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {% include "business_admin/_delete_modal.html" %}
+
+
+    {% block scripts %}
+        <script>
+            // Pass data from Django to JavaScript
+            const weekLabels = {{ week_labels|safe }};
+            const weekRevenue = {{ week_revenue|safe }};
+            const statusLabels = {{ status_labels|safe }};
+            const statusData = {{ status_data|safe }};
+        </script>
+        <script src="{% static 'js/admin/dashboard.js' %}"></script>
+    {% endblock %}
+{% endblock %}

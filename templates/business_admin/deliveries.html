@@ -1,0 +1,210 @@
+{% extends "admin_base.html" %}
+{% block title %}FUTA.Green - Deliveries Management{% endblock %}
+{% load static %}
+
+{% block content %}
+<main class="main-content">
+    <header class="topbar">
+        <div class="page-title">
+            <button class="hamburger-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <h1>Deliveries</h1>
+            <p>Manage pending and in‑transit orders</p>
+        </div>
+        
+    </header>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form id="filterForm" method="get" class="filter-form">
+            <div class="filter-group">
+                <input type="text" name="search" placeholder="Search by name, email, or order ID"
+                       value="{{ current_filters.search }}" />
+            </div>
+            <div class="filter-group">
+                <select name="status">
+                    <option value="">All Statuses</option>
+                    <option value="pending" {% if current_filters.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="paid" {% if current_filters.status == 'paid' %}selected{% endif %}>Paid</option>
+                    <option value="shipped" {% if current_filters.status == 'shipped' %}selected{% endif %}>Shipped</option>
+                    <option value="delivered" {% if current_filters.status == 'delivered' %}selected{% endif %}>Delivered</option>
+                    <option value="cancelled" {% if current_filters.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <input type="date" name="date_from" value="{{ current_filters.date_from }}" placeholder="From" />
+                <span style="color: var(--text-muted); padding: 0 0.3rem;">–</span>
+                <input type="date" name="date_to" value="{{ current_filters.date_to }}" placeholder="To" />
+            </div>
+            <button type="submit" class="btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            <a href="{% url 'business_admin:deliveries' %}" class="btn-sm" style="background: rgba(255,255,255,0.06); color: var(--text-muted); border-color: transparent;">
+                <i class="fas fa-times"></i> Clear
+            </a>
+        </form>
+    </div>
+
+    <!-- Deliveries Table -->
+    <div id="tableContainer">
+        <div class="table-card">
+            <div class="table-header">
+                <h3><i class="fas fa-truck" style="color: var(--accent-emerald);"></i> Orders for Delivery</h3>
+                <span style="color: var(--text-muted); font-size: 0.9rem;">
+                    {{ page_obj.paginator.count }} order{{ page_obj.paginator.count|pluralize }}
+                </span>
+            </div>
+            <div class="table-wrap">
+                <table class="admin-table" id="deliveriesTable">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Address</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th style="text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td><strong>#ORD-{{ order.id|stringformat:"04d" }}</strong></td>
+                            <td>{{ order.full_name }}</td>
+                            <td>
+                                <span title="{{ order.address }}, {{ order.city }}, {{ order.state }}">
+                                    {{ order.address|truncatechars:30 }}
+                                </span>
+                            </td>
+                            <td>₦{{ order.total|floatformat:"0" }}</td>
+                            <td><span class="status-badge {{ order.status }}">{{ order.get_status_display }}</span></td>
+                            <td>{{ order.created_at|date:"Y-m-d" }}</td>
+                            <td style="text-align: center;">
+                                <!-- Update status quickly -->
+                                <button class="action-btn edit"
+                                        data-id="{{ order.id }}"
+                                        data-type="order"
+                                        data-name="{{ order.full_name }}"
+                                        data-status="{{ order.status }}"
+                                        data-total="{{ order.total|floatformat:"0" }}"
+                                        onclick="openEditModal(this.dataset)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete" onclick="openDeleteModal({{ order.id }}, '{{ order.full_name }}', 'order')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">No pending deliveries.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="pagination">
+                <span class="step-links">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">&laquo; First</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Previous</a>
+                    {% endif %}
+                    <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Next</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Last &raquo;</a>
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+
+<!-- ========================== -->
+<!-- EDIT MODAL (reused) -->
+<!-- ========================== -->
+{% include "business_admin/_edit_modal.html" %}
+<!-- DELETE MODAL -->
+{% include "business_admin/_delete_modal.html" %}
+
+{% block scripts %}
+<script>
+    // ========== AJAX LIVE FILTER ==========
+
+    let debounceTimer;
+
+    function fetchTableData(url) {
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newTableContainer = doc.getElementById('tableContainer');
+            if (newTableContainer) {
+                document.getElementById('tableContainer').innerHTML = newTableContainer.innerHTML;
+                const params = new URLSearchParams(new FormData(document.getElementById('filterForm')));
+                const newUrl = window.location.pathname + '?' + params.toString();
+                history.pushState({}, '', newUrl);
+                attachPaginationListeners();
+            }
+        })
+        .catch(err => console.error('AJAX fetch error:', err));
+    }
+
+    function attachPaginationListeners() {
+        document.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                fetchTableData(this.href);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterForm = document.getElementById('filterForm');
+
+        attachPaginationListeners();
+
+        filterForm.querySelectorAll('input, select').forEach(field => {
+            const eventType = field.tagName === 'SELECT' ? 'change' : 'input';
+            field.addEventListener(eventType, function() {
+                clearTimeout(debounceTimer);
+                const params = new URLSearchParams(new FormData(filterForm));
+                const url = window.location.pathname + '?' + params.toString();
+                if (field.tagName === 'SELECT' || field.type === 'date') {
+                    fetchTableData(url);
+                } else {
+                    debounceTimer = setTimeout(() => {
+                        fetchTableData(url);
+                    }, 400);
+                }
+            });
+        });
+
+        document.querySelector('.filter-form .btn-sm[type="submit"]')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            const params = new URLSearchParams(new FormData(filterForm));
+            fetchTableData(window.location.pathname + '?' + params.toString());
+        });
+
+        document.querySelector('.filter-form .btn-sm[href]')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetchTableData(this.href);
+        });
+    });
+
+    function getCSRFToken() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') return value;
+        }
+        return '';
+    }
+</script>
+{% endblock %}
+{% endblock %}

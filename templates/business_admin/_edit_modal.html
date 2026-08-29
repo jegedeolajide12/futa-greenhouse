@@ -1,0 +1,62 @@
+<!-- ========================== -->
+<!-- EDIT MODAL (Reusable) -->
+<!-- ========================== -->
+<div id="editModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container" style="max-width: 520px;">
+        <div class="modal-header">
+            <h2><i class="fas fa-edit"></i> Edit <span id="editModalTitle">Item</span></h2>
+            <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editForm">
+                <input type="hidden" id="editId" value="">
+                <input type="hidden" id="editType" value="">
+
+                <!-- Common fields -->
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="editName" class="form-control" readonly disabled />
+                </div>
+
+                <!-- Order-specific fields -->
+                <div id="orderFields" style="display: none;">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="editStatus" class="form-control">
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                            <option value="shipped">Shipped</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Total</label>
+                        <input type="text" id="editTotal" class="form-control" readonly disabled />
+                    </div>
+                </div>
+
+                <!-- Product-specific fields -->
+                <div id="productFields" style="display: none;">
+                    <div class="form-group">
+                        <label>Price (₦)</label>
+                        <input type="number" id="editPrice" class="form-control" step="0.01" min="0" />
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" id="editStock" class="form-control" min="0" />
+                    </div>
+                    <div class="form-group">
+                        <label><input type="checkbox" id="editAvailable" /> Available</label>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-outline" onclick="closeEditModal()">Cancel</button>
+            <button class="btn-primary" id="saveEditBtn" onclick="saveEdit()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>

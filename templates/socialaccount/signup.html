@@ -1,0 +1,168 @@
+{% extends "_base.html" %}
+{% load static %}
+{% load socialaccount %}
+
+{% block title %}Complete Sign Up · FUTA GreenHouse{% endblock %}
+
+{% block content %}
+<main class="container auth-section">
+    <div class="auth-card">
+        <h1>Almost there!</h1>
+        <p class="subtitle">
+            You are about to use your Google account to sign in.
+            Please confirm your email and complete the form below.
+        </p>
+
+        {% if form.errors %}
+        <div class="form-errors">
+            <i class="fas fa-exclamation-circle"></i>
+            Please correct the errors below.
+        </div>
+        {% endif %}
+
+        <form method="post" action="{% url 'socialaccount_signup' %}">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <!-- Email is pre-filled from Google, shown as read-only -->
+            <div class="form-group">
+                <label for="id_email">Email</label>
+                <input type="email" name="email" id="id_email"
+                       value="{{ form.email.value|default:'' }}"
+                       readonly
+                       style="opacity: 0.7; cursor: not-allowed;">
+                <div class="helptext">This email is from your Google account.</div>
+                {{ form.email.errors }}
+            </div>
+
+            <!-- All other fields except email and username -->
+            {% for field in form %}
+                {% if field.name != 'email' and field.name != 'username' %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <div class="helptext">{{ field.help_text|safe }}</div>
+                    {% endif %}
+                    {{ field.errors }}
+                </div>
+                {% endif %}
+            {% endfor %}
+
+            <!-- Username is omitted – allauth will generate it automatically -->
+            <!-- (ACCOUNT_USERNAME_REQUIRED = False in settings) -->
+
+            {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            {% endif %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-user-plus"></i> Sign Up
+                </button>
+            </div>
+        </form>
+
+        <div class="auth-links">
+            <a href="{% url 'account_login' %}">
+                <i class="fas fa-arrow-left"></i> Back to Sign In
+            </a>
+        </div>
+    </div>
+</main>
+
+<style>
+    /* (same styles as before – keep them) */
+    .auth-section {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 75vh;
+        padding: 3rem 0;
+    }
+    .auth-card {
+        background: var(--bg-card);
+        border-radius: var(--radius);
+        padding: 2.5rem 2rem;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        max-width: 460px;
+        width: 100%;
+        box-shadow: var(--shadow-card);
+    }
+    .auth-card h1 {
+        font-family: 'Fraunces', serif;
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 0.3rem;
+    }
+    .auth-card .subtitle {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        margin-bottom: 1.8rem;
+    }
+    .auth-card .form-errors {
+        color: var(--accent-red);
+        font-size: 0.85rem;
+        margin-bottom: 0.8rem;
+        background: rgba(239, 68, 68, 0.08);
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border-left: 3px solid var(--accent-red);
+    }
+    .auth-card .form-errors p { margin: 0; }
+    .auth-card .form-group {
+        margin-bottom: 1.2rem;
+    }
+    .auth-card .form-group label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        display: block;
+        margin-bottom: 0.3rem;
+    }
+    .auth-card .form-group input,
+    .auth-card .form-group select,
+    .auth-card .form-group textarea {
+        width: 100%;
+        background: var(--bg-primary);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 0.8rem 1.2rem;
+        color: var(--text-light);
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1rem;
+        transition: var(--transition);
+        outline: none;
+    }
+    .auth-card .form-group input:focus,
+    .auth-card .form-group select:focus,
+    .auth-card .form-group textarea:focus {
+        border-color: var(--accent-amber);
+        box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.1);
+    }
+    .auth-card .form-group .helptext {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-top: 0.2rem;
+    }
+    .auth-card .form-actions {
+        margin-top: 1.5rem;
+    }
+    .auth-card .form-actions .btn-primary {
+        width: 100%;
+        justify-content: center;
+    }
+    .auth-card .auth-links {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 0.95rem;
+        color: var(--text-muted);
+    }
+    .auth-card .auth-links a {
+        color: var(--accent-amber);
+        text-decoration: none;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+    .auth-card .auth-links a:hover { text-decoration: underline; }
+</style>
+{% endblock %}

@@ -1,0 +1,173 @@
+[
+  {
+    "model": "products.product",
+    "pk": 1,
+    "fields": {
+      "category": "habanero",
+      "color": "red",
+      "grade": "A",
+      "name": "Red Habanero",
+      "slug": "red-habanero-grade-a",
+      "description": "Fruity, extra hot – perfect for spicy sauces and marinades.",
+      "price": "1500.00",
+      "discount_price": null,
+      "unit": "kg",
+      "stock": 50,
+      "is_available": true,
+      "featured_image": "",
+      "created_at": "2026-08-25T10:00:00Z",
+      "updated_at": "2026-08-25T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 2,
+    "fields": {
+      "category": "habanero",
+      "color": "yellow",
+      "grade": "A",
+      "name": "Yellow Habanero",
+      "slug": "yellow-habanero-grade-a",
+      "description": "Citrusy, very hot – excellent for Caribbean dishes.",
+      "price": "1600.00",
+      "discount_price": null,
+      "unit": "kg",
+      "stock": 35,
+      "is_available": true,
+      "featured_image": "",
+      "created_at": "2026-08-25T10:00:00Z",
+      "updated_at": "2026-08-25T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 3,
+    "fields": {
+      "category": "bell",
+      "color": "red",
+      "grade": "A",
+      "name": "Red Bell Pepper",
+      "slug": "red-bell-grade-a",
+      "description": "Sweet, crunchy – ideal for salads, roasting, and stuffing.",
+      "price": "1200.00",
+      "discount_price": "1100.00",
+      "unit": "piece",
+      "stock": 80,
+      "is_available": true,
+      "featured_image": "",
+      "created_at": "2026-08-25T10:00:00Z",
+      "updated_at": "2026-08-25T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 4,
+    "fields": {
+      "category": "bell",
+      "color": "yellow",
+      "grade": "A",
+      "name": "Yellow Bell Pepper",
+      "slug": "yellow-bell-grade-a",
+      "description": "Mild, juicy – perfect for snacking and garnishing.",
+      "price": "1300.00",
+      "discount_price": null,
+      "unit": "piece",
+      "stock": 60,
+      "is_available": true,
+      "featured_image": "",
+      "created_at": "2026-08-25T10:00:00Z",
+      "updated_at": "2026-08-25T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.product",
+    "pk": 5,
+    "fields": {
+      "category": "habanero",
+      "color": "red",
+      "grade": "B",
+      "name": "Red Habanero (Grade B)",
+      "slug": "red-habanero-grade-b",
+      "description": "Slightly less heat, still flavorful – budget option.",
+      "price": "1200.00",
+      "discount_price": null,
+      "unit": "kg",
+      "stock": 20,
+      "is_available": true,
+      "featured_image": "",
+      "created_at": "2026-08-25T10:00:00Z",
+      "updated_at": "2026-08-25T10:00:00Z"
+    }
+  },
+
+  {
+    "model": "products.bulkpricing",
+    "pk": 1,
+    "fields": {
+      "product": 1,
+      "crate_weight_kg": "5.00",
+      "single_crate_price": "15000.00",
+      "two_to_five_crate_price": "13500.00",
+      "six_plus_crate_price": "12000.00",
+      "is_active": true,
+      "created_at": "2026-08-25T10:00:00Z",
+      "updated_at": "2026-08-25T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.bulkpricing",
+    "pk": 2,
+    "fields": {
+      "product": 2,
+      "crate_weight_kg": "5.00",
+      "single_crate_price": "16000.00",
+      "two_to_five_crate_price": "14400.00",
+      "six_plus_crate_price": "12800.00",
+      "is_active": true,
+      "created_at": "2026-08-25T10:00:00Z",
+      "updated_at": "2026-08-25T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.bulkpricing",
+    "pk": 3,
+    "fields": {
+      "product": 3,
+      "crate_weight_kg": "5.00",
+      "single_crate_price": "12000.00",
+      "two_to_five_crate_price": "10800.00",
+      "six_plus_crate_price": "9600.00",
+      "is_active": true,
+      "created_at": "2026-08-25T10:00:00Z",
+      "updated_at": "2026-08-25T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.bulkpricing",
+    "pk": 4,
+    "fields": {
+      "product": 4,
+      "crate_weight_kg": "5.00",
+      "single_crate_price": "13000.00",
+      "two_to_five_crate_price": "11700.00",
+      "six_plus_crate_price": "10400.00",
+      "is_active": true,
+      "created_at": "2026-08-25T10:00:00Z",
+      "updated_at": "2026-08-25T10:00:00Z"
+    }
+  },
+  {
+    "model": "products.bulkpricing",
+    "pk": 5,
+    "fields": {
+      "product": 5,
+      "crate_weight_kg": "5.00",
+      "single_crate_price": "12000.00",
+      "two_to_five_crate_price": "10800.00",
+      "six_plus_crate_price": "9600.00",
+      "is_active": true,
+      "created_at": "2026-08-25T10:00:00Z",
+      "updated_at": "2026-08-25T10:00:00Z"
+    }
+  }
+]

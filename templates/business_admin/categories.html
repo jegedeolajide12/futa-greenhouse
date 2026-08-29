@@ -1,0 +1,408 @@
+{% extends "admin_base.html" %}
+{% block title %}FUTA.Green - Categories Management{% endblock %}
+{% load static %}
+
+{% block content %}
+<main class="main-content">
+    <header class="topbar">
+        <div class="page-title">
+            <button class="hamburger-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <h1>Categories</h1>
+            <p>Manage product categories</p>
+        </div>
+        
+    </header>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form id="filterForm" method="get" class="filter-form">
+            <div class="filter-group">
+                <input type="text" name="search" placeholder="Search categories..." value="{{ current_filters.search }}" />
+            </div>
+            <button type="submit" class="btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            <a href="{% url 'business_admin:categories' %}" class="btn-sm" style="background: rgba(255,255,255,0.06); color: var(--text-muted); border-color: transparent;">
+                <i class="fas fa-times"></i> Clear
+            </a>
+            <button type="button" class="btn-sm" style="background: var(--accent-emerald); color: #0B170B; border-color: var(--accent-emerald);" onclick="openAddCategoryModal()">
+                <i class="fas fa-plus"></i> Add Category
+            </button>
+        </form>
+    </div>
+
+    <!-- Categories Table -->
+    <div id="tableContainer">
+        <div class="table-card">
+            <div class="table-header">
+                <h3><i class="fas fa-tags" style="color: var(--accent-amber);"></i> All Categories</h3>
+                <span style="color: var(--text-muted); font-size: 0.9rem;">
+                    {{ page_obj.paginator.count }} category{{ page_obj.paginator.count|pluralize }}
+                </span>
+            </div>
+            <div class="table-wrap">
+                <table class="admin-table" id="categoriesTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Slug</th>
+                            <th>Description</th>
+                            <th>Products</th>
+                            <th style="text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for category in categories %}
+                        <tr>
+                            <td><strong>{{ category.name }}</strong></td>
+                            <td>{{ category.slug }}</td>
+                            <td>{{ category.description|truncatechars:40 }}</td>
+                            <td>{{ category.products.count }}</td>
+                            <td style="text-align: center;">
+                                <button class="action-btn edit"
+                                        data-id="{{ category.id }}"
+                                        data-name="{{ category.name }}"
+                                        data-description="{{ category.description }}"
+                                        onclick="openEditCategoryModal(this.dataset)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete"
+                                        onclick="openDeleteCategoryModal({{ category.id }}, '{{ category.name }}')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">No categories found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="pagination">
+                <span class="step-links">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">&laquo; First</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Previous</a>
+                    {% endif %}
+                    <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Next</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Last &raquo;</a>
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+
+<!-- ========================== -->
+<!-- ADD CATEGORY MODAL -->
+<!-- ========================== -->
+<div id="addCategoryModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container" style="max-width: 480px;">
+        <div class="modal-header">
+            <h2><i class="fas fa-plus-circle" style="color: var(--accent-emerald);"></i> Add Category</h2>
+            <button class="modal-close" onclick="closeAddCategoryModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addCategoryForm">
+                <div class="form-group">
+                    <label>Name <span class="required">*</span></label>
+                    <input type="text" id="addCategoryName" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="addCategoryDescription" class="form-control" rows="3"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-outline" onclick="closeAddCategoryModal()">Cancel</button>
+            <button class="btn-primary" id="saveAddCategoryBtn" onclick="saveAddCategory()">
+                <i class="fas fa-plus"></i> Add Category
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================== -->
+<!-- EDIT CATEGORY MODAL -->
+<!-- ========================== -->
+<div id="editCategoryModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container" style="max-width: 480px;">
+        <div class="modal-header">
+            <h2><i class="fas fa-edit"></i> Edit Category</h2>
+            <button class="modal-close" onclick="closeEditCategoryModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editCategoryForm">
+                <input type="hidden" id="editCategoryId" value="">
+                <div class="form-group">
+                    <label>Name <span class="required">*</span></label>
+                    <input type="text" id="editCategoryName" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="editCategoryDescription" class="form-control" rows="3"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-outline" onclick="closeEditCategoryModal()">Cancel</button>
+            <button class="btn-primary" id="saveEditCategoryBtn" onclick="saveEditCategory()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================== -->
+<!-- DELETE CONFIRMATION MODAL (reused) -->
+<!-- ========================== -->
+<div id="deleteModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container" style="max-width: 420px;">
+        <div class="modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+            <h2 style="color: var(--accent-red);"><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h2>
+            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 0.5rem;">Are you sure you want to delete <strong id="deleteItemName"></strong>?</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">This action cannot be undone.</p>
+            <input type="hidden" id="deleteItemId" value="">
+            <input type="hidden" id="deleteItemType" value="">
+        </div>
+        <div class="modal-footer" style="border-top: none; padding-top: 0;">
+            <button class="btn-outline" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn-danger" id="confirmDeleteBtn"><i class="fas fa-trash-alt"></i> Delete</button>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // ========== CATEGORY FUNCTIONS ==========
+
+    function openAddCategoryModal() {
+        document.getElementById('addCategoryModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        document.getElementById('addCategoryForm').reset();
+    }
+
+    function closeAddCategoryModal() {
+        document.getElementById('addCategoryModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function saveAddCategory() {
+        const payload = {
+            name: document.getElementById('addCategoryName').value.trim(),
+            description: document.getElementById('addCategoryDescription').value.trim(),
+        };
+        if (!payload.name) {
+            alert('Please enter a category name.');
+            return;
+        }
+
+        const btn = document.getElementById('saveAddCategoryBtn');
+        const orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+        fetch('/business/admin/api/add-category/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Category added successfully!');
+                location.reload();
+            } else {
+                alert('❌ Error: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => alert('❌ Network error. Please try again.'))
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+            closeAddCategoryModal();
+        });
+    }
+
+    function openEditCategoryModal(data) {
+        document.getElementById('editCategoryId').value = data.id;
+        document.getElementById('editCategoryName').value = data.name;
+        document.getElementById('editCategoryDescription').value = data.description || '';
+        document.getElementById('editCategoryModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeEditCategoryModal() {
+        document.getElementById('editCategoryModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function saveEditCategory() {
+        const payload = {
+            id: document.getElementById('editCategoryId').value,
+            name: document.getElementById('editCategoryName').value.trim(),
+            description: document.getElementById('editCategoryDescription').value.trim(),
+        };
+        if (!payload.name) {
+            alert('Please enter a category name.');
+            return;
+        }
+
+        const btn = document.getElementById('saveEditCategoryBtn');
+        const orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        fetch('/business/admin/api/update-category/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Category updated successfully!');
+                location.reload();
+            } else {
+                alert('❌ Error: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => alert('❌ Network error. Please try again.'))
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+            closeEditCategoryModal();
+        });
+    }
+
+    // Reuse delete modal for categories
+    function openDeleteCategoryModal(id, name) {
+        document.getElementById('deleteItemId').value = id;
+        document.getElementById('deleteItemName').textContent = name;
+        document.getElementById('deleteItemType').value = 'category';
+        document.getElementById('deleteModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    // Override the confirm delete button to handle category deletion
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        const id = document.getElementById('deleteItemId').value;
+        const type = document.getElementById('deleteItemType').value;
+        if (type === 'category') {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+
+            fetch('/business/admin/api/delete-category/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+                body: JSON.stringify({ id: id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('✅ Category deleted successfully!');
+                    location.reload();
+                } else {
+                    alert('❌ Error: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(err => alert('❌ Network error. Please try again.'))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash-alt"></i> Delete';
+                closeDeleteModal();
+            });
+        } else {
+            // Fallback to original delete for orders/products
+            // (you can add logic here or leave as is)
+        }
+    });
+
+    // Close modals on overlay click
+    document.getElementById('addCategoryModal').addEventListener('click', function(e) {
+        if (e.target === this) closeAddCategoryModal();
+    });
+    document.getElementById('editCategoryModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditCategoryModal();
+    });
+
+    // ========== AJAX LIVE FILTER ==========
+    let debounceTimer;
+
+    function fetchTableData(url) {
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newTableContainer = doc.getElementById('tableContainer');
+            if (newTableContainer) {
+                document.getElementById('tableContainer').innerHTML = newTableContainer.innerHTML;
+                const params = new URLSearchParams(new FormData(document.getElementById('filterForm')));
+                const newUrl = window.location.pathname + '?' + params.toString();
+                history.pushState({}, '', newUrl);
+                attachPaginationListeners();
+                // No need to re-bind edit/delete because they use inline onclick
+            }
+        })
+        .catch(err => console.error('AJAX fetch error:', err));
+    }
+
+    function attachPaginationListeners() {
+        document.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                fetchTableData(this.href);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterForm = document.getElementById('filterForm');
+        attachPaginationListeners();
+
+        filterForm.querySelectorAll('input').forEach(field => {
+            field.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const params = new URLSearchParams(new FormData(filterForm));
+                const url = window.location.pathname + '?' + params.toString();
+                debounceTimer = setTimeout(() => {
+                    fetchTableData(url);
+                }, 400);
+            });
+        });
+
+        document.querySelector('.filter-form .btn-sm[type="submit"]')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            const params = new URLSearchParams(new FormData(filterForm));
+            fetchTableData(window.location.pathname + '?' + params.toString());
+        });
+
+        document.querySelector('.filter-form .btn-sm[href]')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetchTableData(this.href);
+        });
+    });
+
+    function getCSRFToken() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') return value;
+        }
+        return '';
+    }
+</script>
+{% endblock %}
+{% endblock %}

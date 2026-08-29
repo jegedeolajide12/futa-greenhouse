@@ -1,0 +1,165 @@
+{% extends "_base.html" %}
+{% block title %}Bulk Orders - FUTA Green{% endblock %}
+{% load static %}
+{% block content %}
+    <main>
+
+        <!-- ========================== -->
+        <!-- BULK HERO (with background image) -->
+        <!-- ========================== -->
+        <section class="bulk-hero">
+            <!-- Background image (replace with your actual image) -->
+            <div class="bulk-hero-bg" style="background-image: url('{% static 'images/bulk-pepper.webp' %}');"></div>
+            <!-- Dark overlay for text readability -->
+            <div class="bulk-hero-overlay"></div>
+            
+            <!-- Foreground content -->
+            <div class="container bulk-hero-content">
+                <h1>🌿 <i>Bulk</i> Orders</h1>
+                <p>Fresh peppers at <span class="highlight">wholesale prices</span> – perfect for restaurants, caterers, and food vendors.</p>
+                <div class="bulk-hero-actions">
+                    <a href="#pricing" class="btn-primary"><i class="fas fa-tags"></i> View Pricing</a>
+                    <a href="#inquiry" class="btn-outline"><i class="fas fa-envelope"></i> Request Quote</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================== -->
+        <!-- BENEFITS -->
+        <!-- ========================== -->
+        <div class="container">
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <i class="fas fa-truck"></i>
+                    <h3>Fast Delivery</h3>
+                    <p>Same‑day or next‑day delivery across FUTA campus and Akure metropolis.</p>
+                </div>
+                <div class="benefit-card">
+                    <i class="fas fa-leaf"></i>
+                    <h3>100% Organic</h3>
+                    <p>Grown without synthetic pesticides – pure, natural flavour.</p>
+                </div>
+                <div class="benefit-card">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <h3>Volume Discounts</h3>
+                    <p>Save more as you order more. Tiered pricing for 5kg+ and 10kg+ crates.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================== -->
+        <!-- PRICING TABLE -->
+        <!-- ========================== -->
+        <div class="container pricing-section" id="pricing">
+            <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                <h2 style="font-family: 'Fraunces', serif; font-size: 2.2rem;"><i class="fas fa-tags"></i> Bulk Pricing</h2>
+                <span style="color: var(--text-muted); font-size: 0.9rem;">Prices are per crate</span>
+            </div>
+
+            <div class="pricing-table-wrap">
+                <table class="pricing-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>1 Crate</th>
+                            <th>2‑5 Crates</th>
+                            <th>6+ Crates</th>
+                            <th>Stock</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for bp in bulk_prices %}
+                        <tr {% if forloop.counter|divisibleby:2 %}class="highlight-row"{% endif %}>
+                            <td data-label="Product"><strong>{{ bp.product.name }}</strong></td>
+                            <td data-label="1 Crate" class="price">₦{{ bp.single_crate_price|floatformat:"0" }}</td>
+                            <td data-label="2‑5 Crates" class="price">
+                                ₦{{ bp.two_to_five_crate_price|floatformat:"0" }}
+                                {% if bp.single_crate_price > bp.two_to_five_crate_price %}
+                                    <span class="badge-bulk">Save {{ bp.single_crate_price|add:"-"|add:bp.two_to_five_crate_price|floatformat:"0" }}%</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="6+ Crates" class="price">
+                                ₦{{ bp.six_plus_crate_price|floatformat:"0" }}
+                                {% if bp.single_crate_price > bp.six_plus_crate_price %}
+                                    <span class="badge-bulk">Save {{ bp.discount_tier2 }}%</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Stock">
+                                {% if bp.product.stock > 0 %}
+                                    <span style="color: var(--accent-emerald);">In Season</span>
+                                {% else %}
+                                    <span style="color: var(--accent-amber);">Pre-Order</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align:center; padding:2rem; color: var(--text-muted);">
+                                No bulk pricing available at the moment. Please check back later.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <p style="text-align: right; color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem;">
+                <i class="fas fa-info-circle"></i> Prices are subject to seasonal availability. Contact us for custom quotes.
+            </p>
+        </div>
+
+        <!-- ========================== -->
+        <!-- INQUIRY FORM -->
+        <!-- ========================== -->
+        <div class="container form-section" id="inquiry">
+            <h2>📦 Request a Bulk Quote</h2>
+            <p>Fill in the details below and we’ll get back to you within 24 hours with a customised quote.</p>
+
+            <form class="form-grid" onsubmit="event.preventDefault(); alert('✅ Thank you! Your quote request has been sent. We\'ll contact you shortly.');">
+                <div class="form-group">
+                    <label for="fullName">Full Name</label>
+                    <input type="text" id="fullName" placeholder="e.g. Chidi Eze" required />
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="you@example.com" required />
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" placeholder="+234 80 1234 5678" required />
+                </div>
+                <div class="form-group">
+                    <label for="product">Product of Interest</label>
+                    <select id="product" name="product">
+                        {% for product in products %}
+                            <option value="{{ product.id }}">{{ product.name }}</option>
+                        {% endfor %}
+                        <option value="mixed">Mixed Crate</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="quantity">Estimated Quantity (crates)</label>
+                    <input type="number" id="quantity" placeholder="e.g. 5" min="1" required />
+                </div>
+                <div class="form-group">
+                    <label for="delivery">Delivery Preference</label>
+                    <select id="delivery">
+                        <option value="pickup">Pickup from Greenhouse</option>
+                        <option value="campus">Campus Delivery</option>
+                        <option value="akure">Akure Town Delivery</option>
+                    </select>
+                </div>
+                <div class="form-group full-width">
+                    <label for="message">Additional Notes</label>
+                    <textarea id="message" placeholder="Any special requirements, delivery dates, or other details..."></textarea>
+                </div>
+                <div class="form-group full-width" style="display: flex; justify-content: flex-end;">
+                    <button type="submit" class="btn-primary"><i class="fas fa-paper-plane"></i> Send Request</button>
+                </div>
+            </form>
+        </div>
+
+    </main>
+    {% block scripts %}
+    <script src="{% static 'js/bulk_order.js' %}"></script>
+    {% endblock %}
+{% endblock %}

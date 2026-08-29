@@ -1,0 +1,252 @@
+{% extends "_base.html" %}
+{% block title %}Your Cart - FUTA Greenhouse{% endblock %}
+{% load static %}
+{% block content %}
+
+<main class="container">
+
+    <!-- ========================== -->
+    <!-- BREADCRUMB -->
+    <!-- ========================== -->
+    <div class="breadcrumb">
+        <a href="{% url 'home' %}">Home</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <a href="{% url 'products:shop' %}">Shop</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <span class="current">Your Cart</span>
+    </div>
+
+    <!-- ========================== -->
+    <!-- CART CONTENT (rendered by JS) -->
+    <!-- ========================== -->
+    <div class="cart-layout" id="cartContainer">
+        <!-- Rendered by JavaScript -->
+        <div class="empty-cart" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+            <i class="fas fa-spinner fa-spin" style="font-size: 3rem; color: var(--accent-amber);"></i>
+            <p style="margin-top: 1rem; color: var(--text-muted);">Loading your cart...</p>
+        </div>
+    </div>
+
+</main>
+
+{% block scripts %}
+    <!-- The base.html already injects CART_*_URL constants and loads cart.js -->
+    <!-- We'll add a page-specific script that uses those constants -->
+    <script>
+        // ============================================================
+        //  CART PAGE – FULL RENDER (uses the same API as the dropdown)
+        // ============================================================
+
+        const container = document.getElementById('cartContainer');
+
+        // ----- Helper: get CSRF token (same as in cart.js) -----
+        function getCSRFToken() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') return value;
+            }
+            return '';
+        }
+
+        // ----- Fetch current cart from server -----
+        function fetchCartData() {
+            return fetch(CART_ITEMS_URL)
+                .then(res => res.json())
+                .catch(err => {
+                    console.error('Failed to fetch cart:', err);
+                    return { items: [], total: 0, count: 0, empty: true };
+                });
+        }
+
+        // ----- Update quantity (API) and re‑render -----
+        function updateCartItem(productId, newQty) {
+            return fetch(CART_UPDATE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({ product_id: productId, quantity: newQty })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const badge = document.getElementById('cartCount');
+                    if (badge) badge.textContent = data.cart_count;
+                    renderCart();
+                    // Optionally show a subtle success toast (you can skip if too spammy)
+                    alertSuccess('Quantity updated.');
+                } else {
+                    alertError('Failed to update quantity.');
+                }
+            })
+            .catch(err => {
+                alertError('Network error while updating.');
+                console.error('Update error:', err);
+            });
+        }
+
+        // ----- Remove item (API) and re‑render -----
+        function removeCartItem(productId) {
+            // No confirm – just remove, show toast on success/error
+            return fetch(CART_REMOVE_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCSRFToken(),
+                },
+                body: JSON.stringify({ product_id: productId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const badge = document.getElementById('cartCount');
+                    if (badge) badge.textContent = data.cart_count;
+                    renderCart();
+                    alertSuccess('Item removed from cart.');   // ✅
+                } else {
+                    alertError('Could not remove item.');     // ❌
+                }
+            })
+            .catch(err => {
+                alertError('Something went wrong.');
+                console.error('Remove error:', err);
+            });
+        }
+
+        // ----- Render the full cart layout -----
+        function renderCart() {
+            fetchCartData().then(data => {
+                const { items, total, count } = data;
+
+                // Update badge (just in case)
+                const badge = document.getElementById('cartCount');
+                if (badge) badge.textContent = count;
+
+                if (items.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-cart" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem;">
+                            <i class="fas fa-shopping-bag" style="font-size: 4rem; color: var(--text-muted); opacity: 0.3;"></i>
+                            <h2 style="font-family: 'Fraunces', serif; font-size: 2rem; margin-top: 0.5rem;">Your cart is empty</h2>
+                            <p style="color: var(--text-muted);">Looks like you haven't added anything yet. Let's fix that!</p>
+                            <a href="{% url 'products:shop' %}" class="btn-primary" style="margin-top: 1rem;">
+                                <i class="fas fa-store"></i> Continue Shopping
+                            </a>
+                        </div>
+                    `;
+                    alertInfo('Your cart is now empty.');
+                    return;
+                }
+
+                // ---- Build items HTML ----
+                const itemsHTML = items.map(item => {
+                    const imageUrl = item.image || '{% static "images/placeholder.jpg" %}';
+                    return `
+                        <div class="cart-item" data-id="${item.id}">
+                            <img src="${imageUrl}" alt="${item.name}" class="item-img" loading="lazy" />
+                            <div class="item-details">
+                                <div class="item-name">${item.name}</div>
+                                <div class="item-variant">${item.unit || ''}</div>
+                                <div class="item-price">₦${Number(item.price).toLocaleString()}</div>
+                            </div>
+                            <div class="item-actions">
+                                <div class="qty-control">
+                                    <button class="qty-btn" onclick="changeQty(this, -1)">
+                                        <i class="fas fa-minus"></i>
+                                    </button>
+                                    <input type="number" class="qty-input" value="${item.quantity}" min="1" max="99"
+                                           onchange="setQty(this, this.value)" />
+                                    <button class="qty-btn" onclick="changeQty(this, 1)">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                                <div class="item-total">₦${(item.price * item.quantity).toLocaleString()}</div>
+                                <button class="btn-danger" onclick="removeItem(this)">
+                                    <i class="fas fa-trash-alt"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // ---- Build summary ----
+                const delivery = 500; // flat fee – can be dynamic later
+                const subtotal = total;
+                const grandTotal = subtotal + delivery;
+
+                const summaryHTML = `
+                    <div class="cart-summary">
+                        <h3>Order Summary</h3>
+                        <div class="summary-row">
+                            <span class="label">Subtotal</span>
+                            <span class="value">₦${subtotal.toLocaleString()}</span>
+                        </div>
+                        <div class="summary-row">
+                            <span class="label">Delivery</span>
+                            <span class="value">₦${delivery.toLocaleString()}</span>
+                        </div>
+                        <div class="summary-divider"></div>
+                        <div class="summary-row">
+                            <span class="label">Total</span>
+                            <span class="value total">₦${grandTotal.toLocaleString()}</span>
+                        </div>
+                        <button class="btn-primary" onclick="proceedCheckout()">
+                            <i class="fas fa-lock"></i> Proceed to Checkout
+                        </button>
+                        <a href="{% url 'products:shop' %}" class="btn-outline">
+                            <i class="fas fa-arrow-left"></i> Continue Shopping
+                        </a>
+                    </div>
+                `;
+
+                // ---- Combine ----
+                container.innerHTML = `
+                    <div class="cart-items">
+                        <h2>Shopping Cart</h2>
+                        <div class="item-count">${count} item${count > 1 ? 's' : ''} in your cart</div>
+                        ${itemsHTML}
+                    </div>
+                    ${summaryHTML}
+                `;
+            });
+        }
+
+        // ----- Quantity control helpers (exposed globally for inline onclick) -----
+        window.changeQty = function(btn, delta) {
+            const itemElement = btn.closest('.cart-item');
+            if (!itemElement) return;
+            const productId = itemElement.dataset.id;
+            const input = itemElement.querySelector('.qty-input');
+            let current = parseInt(input.value) || 1;
+            let newVal = Math.min(99, Math.max(1, current + delta));
+            input.value = newVal;
+            updateCartItem(productId, newVal);
+        };
+
+        window.setQty = function(input, value) {
+            const itemElement = input.closest('.cart-item');
+            if (!itemElement) return;
+            const productId = itemElement.dataset.id;
+            let newVal = parseInt(value) || 1;
+            newVal = Math.min(99, Math.max(1, newVal));
+            input.value = newVal;
+            updateCartItem(productId, newVal);
+        };
+
+        window.removeItem = function(btn) {
+            const itemElement = btn.closest('.cart-item');
+            if (!itemElement) return;
+            const productId = itemElement.dataset.id;
+            removeCartItem(productId);
+        };
+
+        window.proceedCheckout = function() {
+            window.location.href = "{% url 'products:checkout' %}";
+        };
+
+        // ----- Initial render -----
+        document.addEventListener('DOMContentLoaded', renderCart);
+    </script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends "admin_base.html" %}
+{% block title %}FUTA.Green - Customers Management{% endblock %}
+{% load static %}
+
+{% block content %}
+<main class="main-content">
+    <header class="topbar">
+        <div class="page-title">
+            <button class="hamburger-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <h1>Customers</h1>
+            <p>Manage your customer base</p>
+        </div>
+        
+    </header>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form id="filterForm" method="get" class="filter-form">
+            <div class="filter-group" style="flex: 2;">
+                <input type="text" name="search" placeholder="Search by name, email, or phone..." value="{{ current_filters.search }}" />
+            </div>
+            <button type="submit" class="btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            <a href="{% url 'business_admin:customers' %}" class="btn-sm" style="background: rgba(255,255,255,0.06); color: var(--text-muted); border-color: transparent;">
+                <i class="fas fa-times"></i> Clear
+            </a>
+        </form>
+    </div>
+
+    <!-- Customers Table -->
+    <div id="tableContainer">
+        <div class="table-card">
+            <div class="table-header">
+                <h3><i class="fas fa-users" style="color: var(--accent-blue);"></i> All Customers</h3>
+                <span style="color: var(--text-muted); font-size: 0.9rem;">
+                    {{ page_obj.paginator.count }} customer{{ page_obj.paginator.count|pluralize }}
+                </span>
+            </div>
+            <div class="table-wrap">
+                <table class="admin-table" id="customersTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Location</th>
+                            <th>Orders</th>
+                            <th>Total Spent</th>
+                            <th style="text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for customer in customers %}
+                        <tr>
+                            <td><strong>{{ customer.full_name }}</strong></td>
+                            <td>{{ customer.email }}</td>
+                            <td>{{ customer.phone|default:"—" }}</td>
+                            <td>{{ customer.city }}, {{ customer.state }}</td>
+                            <td>{{ customer.order_count }}</td>
+                            <td>₦{{ customer.total_spent|floatformat:"0" }}</td>
+                            <td style="text-align: center;">
+                                <button class="action-btn edit" onclick="viewCustomer('{{ customer.email }}')">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">No customers found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="pagination">
+                <span class="step-links">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">&laquo; First</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Previous</a>
+                    {% endif %}
+                    <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Next</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Last &raquo;</a>
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+
+<!-- ========================== -->
+<!-- CUSTOMER DETAIL MODAL -->
+<!-- ========================== -->
+<div id="customerModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container" style="max-width: 640px;">
+        <div class="modal-header">
+            <h2><i class="fas fa-user" style="color: var(--accent-amber);"></i> Customer Details</h2>
+            <button class="modal-close" onclick="closeCustomerModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="customerDetails">
+                <!-- Rendered by JavaScript -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-outline" onclick="closeCustomerModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // ========== CUSTOMER DETAIL ==========
+
+    function viewCustomer(email) {
+        // Fetch customer orders
+        fetch('/business/admin/api/customer-orders/?email=' + encodeURIComponent(email))
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                alert('Error: ' + data.error);
+                return;
+            }
+            renderCustomerModal(data);
+            document.getElementById('customerModal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        })
+        .catch(err => {
+            alert('Network error. Please try again.');
+            console.error(err);
+        });
+    }
+
+    function closeCustomerModal() {
+        document.getElementById('customerModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    function renderCustomerModal(data) {
+        const container = document.getElementById('customerDetails');
+        const customer = data.customer;
+        const orders = data.orders;
+
+        let ordersHtml = '';
+        if (orders.length === 0) {
+            ordersHtml = '<p style="color: var(--text-muted);">No orders found.</p>';
+        } else {
+            ordersHtml = orders.map(o => `
+                <div style="display: flex; justify-content: space-between; padding: 0.4rem 0; border-bottom: 1px solid rgba(255,255,255,0.04);">
+                    <span><strong>#ORD-${o.id.toString().padStart(4, '0')}</strong> ${o.created_at}</span>
+                    <span style="color: var(--accent-amber);">₦${o.total.toLocaleString()}</span>
+                    <span class="status-badge ${o.status}">${o.status_label}</span>
+                </div>
+            `).join('');
+        }
+
+        container.innerHTML = `
+            <div style="background: var(--bg-primary); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 1.5rem;">
+                    <div><strong>Name:</strong> ${customer.full_name}</div>
+                    <div><strong>Email:</strong> ${customer.email}</div>
+                    <div><strong>Phone:</strong> ${customer.phone || '—'}</div>
+                    <div><strong>Location:</strong> ${customer.city}, ${customer.state}</div>
+                </div>
+                <div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 1rem; display: flex; gap: 2rem;">
+                    <div><strong>Orders:</strong> ${customer.order_count}</div>
+                    <div><strong>Total Spent:</strong> ₦${customer.total_spent.toLocaleString()}</div>
+                </div>
+            </div>
+            <h4 style="margin-bottom: 0.5rem;">Order History</h4>
+            <div style="background: var(--bg-primary); border-radius: 12px; padding: 0.8rem; max-height: 300px; overflow-y: auto;">
+                ${ordersHtml}
+            </div>
+        `;
+    }
+
+    // ========== AJAX LIVE FILTER ==========
+
+    let debounceTimer;
+
+    function fetchTableData(url) {
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newTableContainer = doc.getElementById('tableContainer');
+            if (newTableContainer) {
+                document.getElementById('tableContainer').innerHTML = newTableContainer.innerHTML;
+                const params = new URLSearchParams(new FormData(document.getElementById('filterForm')));
+                const newUrl = window.location.pathname + '?' + params.toString();
+                history.pushState({}, '', newUrl);
+                attachPaginationListeners();
+            }
+        })
+        .catch(err => console.error('AJAX fetch error:', err));
+    }
+
+    function attachPaginationListeners() {
+        document.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                fetchTableData(this.href);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterForm = document.getElementById('filterForm');
+
+        attachPaginationListeners();
+
+        filterForm.querySelectorAll('input').forEach(field => {
+            field.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const params = new URLSearchParams(new FormData(filterForm));
+                const url = window.location.pathname + '?' + params.toString();
+                debounceTimer = setTimeout(() => {
+                    fetchTableData(url);
+                }, 400);
+            });
+        });
+
+        // Filter button
+        document.querySelector('.filter-form .btn-sm[type="submit"]')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            const params = new URLSearchParams(new FormData(filterForm));
+            fetchTableData(window.location.pathname + '?' + params.toString());
+        });
+
+        // Clear button
+        document.querySelector('.filter-form .btn-sm[href]')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            fetchTableData(this.href);
+        });
+    });
+
+    // CSRF helper
+    function getCSRFToken() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') return value;
+        }
+        return '';
+    }
+</script>
+{% endblock %}
+{% endblock %}

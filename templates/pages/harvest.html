@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FUTA GreenHouse · Harvest Calendar</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        /* ---------- RESET ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        html, body {
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
+        :root {
+            --bg-primary: #0B170B;
+            --bg-card: #152615;
+            --bg-card-hover: #1E341E;
+            --text-light: #EEF6EE;
+            --text-muted: #8DA68D;
+            --accent-amber: #F59E0B;
+            --accent-emerald: #34D399;
+            --shadow-card: 0 20px 50px rgba(0, 0, 0, 0.7);
+            --radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-light);
+            line-height: 1.6;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .container {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-amber);
+            border-radius: 10px;
+        }
+
+        /* ---------- BUTTONS ---------- */
+        .btn-primary {
+            background: var(--accent-amber);
+            color: #0B170B;
+            padding: 0.9rem 2.5rem;
+            border-radius: 60px;
+            font-weight: 700;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 8px 30px rgba(245, 158, 11, 0.2);
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(245, 158, 11, 0.35);
+            background: #FBBF24;
+        }
+
+        /* ---------- NAVBAR (Full width bg, inner container) ---------- */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(11, 23, 11, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 1.2rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            isolation: isolate;
+        }
+        .navbar .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .logo {
+            font-family: 'Fraunces', serif;
+            font-size: 1.9rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            white-space: nowrap;
+        }
+        .logo span {
+            color: var(--accent-amber);
+        }
+        .logo i {
+            color: var(--accent-emerald);
+            font-size: 1.4rem;
+            margin-right: 4px;
+        }
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            list-style: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            margin: 0;
+            padding: 0;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-muted);
+            transition: var(--transition);
+            position: relative;
+            white-space: nowrap;
+        }
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-amber);
+            transition: var(--transition);
+        }
+        .nav-links a:hover {
+            color: var(--text-light);
+        }
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+        .nav-links a.active {
+            color: var(--accent-amber);
+        }
+        .nav-links a.active::after {
+            width: 100%;
+        }
+        .cart-icon {
+            position: relative;
+            font-size: 1.4rem;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: var(--transition);
+            margin-left: 0.5rem;
+        }
+        .cart-icon:hover {
+            color: var(--accent-amber);
+        }
+        .cart-badge {
+            position: absolute;
+            top: -10px;
+            right: -12px;
+            background: var(--accent-amber);
+            color: #0B170B;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 0.15rem 0.6rem;
+            border-radius: 50px;
+            font-family: 'Space Grotesk', sans-serif;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.4);
+        }
+        .hamburger {
+            display: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        /* ---------- HERO ---------- */
+        .harvest-hero {
+            padding: 4rem 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(52, 211, 153, 0.1);
+            margin-bottom: 3rem;
+            background: radial-gradient(circle at 30% 20%, #1A3A1A, #0B170B 80%);
+            border-radius: 0 0 40px 40px;
+        }
+        .harvest-hero h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 3.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .harvest-hero h1 i {
+            color: var(--accent-amber);
+            font-style: normal;
+        }
+        .harvest-hero p {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto 1.5rem;
+        }
+        .harvest-hero .season-badge {
+            display: inline-block;
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-amber);
+            padding: 0.4rem 1.8rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+
+        /* ---------- CURRENT HARVEST GRID ---------- */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .section-header h2 {
+            font-family: 'Fraunces', serif;
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+        .section-header h2 i {
+            color: var(--accent-emerald);
+        }
+
+        .harvest-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        .harvest-card {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 2rem 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: var(--transition);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .harvest-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-amber), var(--accent-emerald));
+            opacity: 0;
+            transition: var(--transition);
+        }
+        .harvest-card:hover {
+            transform: translateY(-6px);
+            background: var(--bg-card-hover);
+            border-color: rgba(245, 158, 11, 0.08);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+        }
+        .harvest-card:hover::before {
+            opacity: 1;
+        }
+        .harvest-card .emoji {
+            font-size: 3.5rem;
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .harvest-card .name {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+        .harvest-card .status {
+            display: inline-block;
+            margin: 0.5rem 0 0.8rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.2rem 1.2rem;
+            border-radius: 30px;
+        }
+        .status.in-season {
+            background: rgba(52, 211, 153, 0.2);
+            color: var(--accent-emerald);
+        }
+        .status.coming-soon {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-amber);
+        }
+        .status.off-season {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-muted);
+        }
+        .harvest-card .harvest-date {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .harvest-card .harvest-date strong {
+            color: var(--text-light);
+        }
+
+        /* ---------- MONTHLY TIMELINE (CALENDAR) ---------- */
+        .timeline-section {
+            margin: 4rem 0;
+        }
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 0.4rem;
+            margin-top: 1.5rem;
+        }
+        .month-bar {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: 0.6rem 0.2rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            transition: var(--transition);
+            position: relative;
+        }
+        .month-bar .month-label {
+            font-size: 0.6rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+        .month-bar .bar-inner {
+            height: 6px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.06);
+            overflow: hidden;
+            position: relative;
+        }
+        .month-bar .bar-fill {
+            height: 100%;
+            border-radius: 10px;
+            width: 0%;
+            background: var(--accent-amber);
+            transition: width 1s ease;
+        }
+        .month-bar .bar-fill.habanero {
+            background: #EF4444;
+        }
+        .month-bar .bar-fill.bell {
+            background: var(--accent-emerald);
+        }
+        .month-bar .bar-fill.mixed {
+            background: var(--accent-amber);
+        }
+        .month-bar .legend-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+        .month-bar .legend-text {
+            font-size: 0.5rem;
+            color: var(--text-muted);
+        }
+
+        /* ---------- FOOTER ---------- */
+        .footer {
+            padding: 4rem 0 2rem 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            margin-top: 4rem;
+            background: var(--bg-primary);
+        }
+        .footer .container {
+            display: block;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+        .footer-brand p {
+            color: var(--text-muted);
+            max-width: 320px;
+            margin-top: 0.5rem;
+        }
+        .footer-social {
+            display: flex;
+            gap: 1.2rem;
+            margin-top: 1.2rem;
+            font-size: 1.4rem;
+        }
+        .footer-social a {
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
+        .footer-social a:hover {
+            color: var(--accent-amber);
+        }
+        .footer-links h5 {
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        .footer-links ul {
+            list-style: none;
+        }
+        .footer-links ul li {
+            margin-bottom: 0.6rem;
+        }
+        .footer-links ul li a {
+            text-decoration: none;
+            color: var(--text-muted);
+            transition: var(--transition);
+            font-size: 0.95rem;
+        }
+        .footer-links ul li a:hover {
+            color: var(--text-light);
+        }
+        .footer-bottom {
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 2rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* ---------- RESPONSIVE ---------- */
+        @media (max-width: 1024px) {
+            .nav-links { display: none; }
+            .hamburger { display: block; }
+            .timeline-grid { grid-template-columns: repeat(6, 1fr); }
+            .footer-grid { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 768px) {
+            .container { padding: 0 1.2rem; }
+            .harvest-hero { padding: 3rem 1rem; }
+            .harvest-hero h1 { font-size: 2.2rem; }
+            .harvest-grid { grid-template-columns: 1fr 1fr; gap: 1rem; }
+            .timeline-grid { grid-template-columns: repeat(4, 1fr); }
+            .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .nav-links.active {
+                display: flex;
+                flex-direction: column;
+                position: absolute;
+                top: 78px;
+                left: 0;
+                width: 100%;
+                background: var(--bg-primary);
+                padding: 2rem;
+                gap: 1.5rem;
+                border-bottom: 2px solid var(--accent-amber);
+                backdrop-filter: blur(16px);
+                z-index: 100;
+                max-width: 100vw;
+            }
+        }
+        @media (max-width: 480px) {
+            .harvest-grid { grid-template-columns: 1fr; max-width: 320px; margin: 0 auto; }
+            .timeline-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========================== -->
+    <!-- NAVBAR -->
+    <!-- ========================== -->
+    <header class="navbar">
+        <div class="container">
+            <div class="logo">
+                <i class="fas fa-leaf"></i>FUTA<span>.</span>Green
+            </div>
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Shop</a></li>
+                <li><a href="#" class="active">Harvest</a></li>
+                <li><a href="#">Bulk</a></li>
+                <li class="cart-icon">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="cart-badge" id="cartCount">0</span>
+                </li>
+            </ul>
+            <div class="hamburger" id="hamburger" onclick="toggleNav()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <main>
+
+        <!-- ========================== -->
+        <!-- HARVEST HERO -->
+        <!-- ========================== -->
+        <section class="harvest-hero container">
+            <h1>🌱 <i>Harvest</i> Calendar</h1>
+            <p>Know exactly when your favourite peppers are at their peak – fresh from the FUTA greenhouse.</p>
+            <span class="season-badge"><i class="fas fa-calendar-alt"></i> Current Season: <strong>Red Habanero &amp; Bell Peppers</strong></span>
+        </section>
+
+        <!-- ========================== -->
+        <!-- CURRENT HARVEST STATUS -->
+        <!-- ========================== -->
+        <div class="container">
+            <div class="section-header">
+                <h2><i class="fas fa-tractor"></i> What's Growing Now</h2>
+                <span style="color: var(--text-muted); font-size: 0.95rem;">Updated weekly</span>
+            </div>
+
+            <div class="harvest-grid" id="harvestGrid">
+                <!-- Cards will be rendered by JS -->
+            </div>
+        </div>
+
+        <!-- ========================== -->
+        <!-- MONTHLY TIMELINE -->
+        <!-- ========================== -->
+        <div class="container timeline-section">
+            <div class="section-header">
+                <h2><i class="fas fa-calendar-check"></i> Year‑Round Availability</h2>
+                <span style="color: var(--text-muted); font-size: 0.85rem;">Estimated harvest windows</span>
+            </div>
+
+            <div class="timeline-grid" id="timelineGrid">
+                <!-- Months will be rendered by JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========================== -->
+    <!-- FOOTER -->
+    <!-- ========================== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <div class="logo" style="font-size: 1.8rem;">
+                        <i class="fas fa-leaf"></i>FUTA<span>.</span>Green
+                    </div>
+                    <p>Fresh, organic peppers grown with care in the Federal University of Technology, Akure greenhouse.</p>
+                    <div class="footer-social">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h5>Shop</h5>
+                    <ul>
+                        <li><a href="#">Habanero</a></li>
+                        <li><a href="#">Bell Peppers</a></li>
+                        <li><a href="#">Bulk Crates</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h5>Info</h5>
+                    <ul>
+                        <li><a href="#">Harvest Calendar</a></li>
+                        <li><a href="#">Delivery</a></li>
+                        <li><a href="#">Payment</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h5>Contact</h5>
+                    <ul>
+                        <li><a href="#"><i class="fas fa-phone"></i> +234 80 1234 5678</a></li>
+                        <li><a href="#"><i class="fas fa-envelope"></i> greenhouse@futa.edu.ng</a></li>
+                        <li><a href="#"><i class="fas fa-map-pin"></i> FUTA Campus, Akure</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; 2026 FUTA GreenHouse. All rights reserved.</span>
+                <span>Built by the <i class="fas fa-heart" style="color: var(--accent-amber);"></i> FUTA Intern</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========================== -->
+    <!-- JAVASCRIPT -->
+    <!-- ========================== -->
+    <script>
+        // ========== HARVEST DATA ==========
+        const harvestItems = [{
+            name: 'Red Habanero',
+            emoji: '🌶️',
+            status: 'in-season',
+            statusLabel: '🔥 In Season',
+            harvestStart: 'August',
+            harvestEnd: 'October',
+            color: '#EF4444'
+        }, {
+            name: 'Yellow Habanero',
+            emoji: '🌶️',
+            status: 'coming-soon',
+            statusLabel: '⏳ Coming Soon',
+            harvestStart: 'November',
+            harvestEnd: 'January',
+            color: '#F59E0B'
+        }, {
+            name: 'Red Bell Pepper',
+            emoji: '🫑',
+            status: 'in-season',
+            statusLabel: '✅ In Season',
+            harvestStart: 'September',
+            harvestEnd: 'November',
+            color: '#34D399'
+        }, {
+            name: 'Yellow Bell Pepper',
+            emoji: '🫑',
+            status: 'off-season',
+            statusLabel: '⏸️ Off Season',
+            harvestStart: 'March',
+            harvestEnd: 'May',
+            color: '#8DA68D'
+        }];
+
+        // ========== RENDER HARVEST CARDS ==========
+        function renderHarvestCards() {
+            const grid = document.getElementById('harvestGrid');
+            grid.innerHTML = harvestItems.map(item => `
+                <div class="harvest-card">
+                    <span class="emoji">${item.emoji}</span>
+                    <div class="name">${item.name}</div>
+                    <span class="status ${item.status}">${item.statusLabel}</span>
+                    <div class="harvest-date">
+                        <i class="fas fa-calendar-alt"></i> 
+                        <strong>${item.harvestStart}</strong> – ${item.harvestEnd}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ========== RENDER TIMELINE (Monthly Bars) ==========
+        function renderTimeline() {
+            const container = document.getElementById('timelineGrid');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+            // For each month, compute which peppers are available (simplified)
+            // We'll assign a "fill" percentage based on a fictional peak
+            // Here we just show a demo: Red Habanero active Aug-Oct, Red Bell Sep-Nov, etc.
+            // We'll map months to fill percentages per pepper type, but we'll aggregate as a single bar per month.
+            // For a more realistic approach, we'll just show a sample bar with mixed colors.
+            // But we'll keep it simple: we show a bar with a label of the most prominent pepper.
+            const monthData = months.map((month, index) => {
+                // Determine which peppers are in season this month (based on harvestStart/End)
+                let activePeppers = harvestItems.filter(item => {
+                    const startMonth = months.indexOf(item.harvestStart);
+                    const endMonth = months.indexOf(item.harvestEnd);
+                    if (startMonth <= endMonth) {
+                        return index >= startMonth && index <= endMonth;
+                    } else {
+                        // wraps around year (e.g., Nov-Jan)
+                        return index >= startMonth || index <= endMonth;
+                    }
+                });
+                let fillColor = '#8DA68D'; // default off
+                let label = '—';
+                let fillPercent = 0;
+                if (activePeppers.length > 0) {
+                    // Use the first active pepper for color/label
+                    const first = activePeppers[0];
+                    fillColor = first.color;
+                    label = first.name.split(' ')[0]; // short name
+                    // fill percent based on how many peppers are active (0-100)
+                    // for demo, we'll use 100% if any active
+                    fillPercent = 100;
+                }
+                return { month, fillPercent, label, fillColor };
+            });
+
+            container.innerHTML = monthData.map(d => `
+                <div class="month-bar">
+                    <span class="month-label">${d.month}</span>
+                    <div class="bar-inner">
+                        <div class="bar-fill" style="width: ${d.fillPercent}%; background: ${d.fillColor};"></div>
+                    </div>
+                    <div style="font-size: 0.5rem; color: var(--text-muted); margin-top: 0.15rem;">${d.label}</div>
+                </div>
+            `).join('');
+        }
+
+        // ========== NAV TOGGLE ==========
+        function toggleNav() {
+            document.getElementById('navLinks').classList.toggle('active');
+        }
+        document.addEventListener('click', function(e) {
+            const nav = document.getElementById('navLinks');
+            const ham = document.getElementById('hamburger');
+            if (nav.classList.contains('active') && !nav.contains(e.target) && !ham.contains(e.target)) {
+                nav.classList.remove('active');
+            }
+        });
+
+        // ========== CART COUNTER (dummy) ==========
+        let cartCount = 0;
+        const badge = document.getElementById('cartCount');
+
+        // ========== INIT ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            renderHarvestCards();
+            renderTimeline();
+        });
+    </script>
+
+</body>
+</html>

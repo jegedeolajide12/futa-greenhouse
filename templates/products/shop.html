@@ -1,0 +1,133 @@
+{% extends "_base.html" %}
+{% block title %}Shop - FUTA Greenhouse{% endblock %}
+{% load static %}
+{% block content %}
+    <main>
+
+        <!-- ========================== -->
+        <!-- SHOP HERO -->
+        <!-- ========================== -->
+        <!-- ========================== -->
+        <!-- SHOP HERO (AUTO CAROUSEL) -->
+        <!-- ========================== -->
+        <section class="shop-hero container">
+
+            <!-- Carousel Slides (Background) -->
+            <div class="hero-slides-wrapper">
+                <!-- Slide 1: Red Habanero -->
+                <div class="hero-slide active" data-title="Fire up your meals" data-subtitle="Fresh Red Habanero – extra hot &amp; fruity">
+                    <!-- Replace the gradient below with your own image: background-image: url('red-pepper.jpg'); -->
+                    <div class="slide-bg" style="background-image: url('{% static 'images/shop-hero.jpg' %}')"></div>
+                </div>
+                <!-- Slide 2: Yellow Bell -->
+                <div class="hero-slide" data-title="Sweetness in every bite" data-subtitle="Crispy Yellow Bell – mild &amp; juicy">
+                    <div class="slide-bg" style="background-image: url('{% static 'images/yellow-bell-hero.jpg' %}')"></div>
+                </div>
+                <!-- Slide 3: Greenhouse / Farm -->
+                <div class="hero-slide" data-title="Fresh from FUTA soil" data-subtitle="Organic peppers, harvested at dawn">
+                    <div class="slide-bg" style="background-image: url('{% static 'images/red-bell-hero.jpg' %}')"></div>
+                </div>
+                <!-- Slide 4: Mixed Peppers -->
+                <div class="hero-slide" data-title="Find your perfect pepper" data-subtitle="Search our harvest by name, heat, or color">
+                    <div class="slide-bg" style="background-image: url('{% static 'images/yellow-habanero-hero.jpg' %}')"></div>
+                </div>
+            </div>
+
+            <!-- Dark overlay for text readability -->
+            <div class="hero-overlay"></div>
+
+            <!-- Foreground Content (Stays Fixed) -->
+            <div class="hero-content">
+                <h1 id="heroTitle">Find your <i>perfect</i> pepper</h1>
+                <p id="heroSubtitle">Search our fresh harvest by name, heat level, or color.</p>
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search peppers... (e.g. 'Red Habanero')" oninput="filterProducts()" />
+                    <button onclick="filterProducts()">
+                        <i class="fas fa-arrow-right"></i> Search
+                    </button>
+                </div>
+            </div>
+
+            <!-- Carousel Indicators (Dots) -->
+            <div class="carousel-dots" id="carouselDots"></div>
+
+        </section>
+
+        <!-- ========================== -->
+        <!-- SHOP LAYOUT -->
+        <!-- ========================== -->
+        <div class="container shop-layout">
+
+            <!-- SIDEBAR -->
+            <!-- SIDEBAR -->
+            <aside class="filter-sidebar" id="filterSidebar">
+                <h3>
+                    <i class="fas fa-sliders-h"></i> Filters
+                    <button class="filter-toggle-btn" id="filterToggle" aria-label="Toggle filters">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </h3>
+                <div class="filter-divider"></div>
+
+                <div class="filter-options" id="filterOptions">
+                    <div class="filter-group">
+                        <h4>🌱 Type</h4>
+                        <label><input type="checkbox" class="filter-check" data-filter="type" value="habanero" onchange="filterProducts()" checked /> Habanero</label>
+                        <label><input type="checkbox" class="filter-check" data-filter="type" value="bell" onchange="filterProducts()" checked /> Bell Pepper</label>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>🎨 Color</h4>
+                        <label><input type="checkbox" class="filter-check" data-filter="color" value="red" onchange="filterProducts()" checked /> Red</label>
+                        <label><input type="checkbox" class="filter-check" data-filter="color" value="yellow" onchange="filterProducts()" checked /> Yellow</label>
+                    </div>
+
+                    <div class="filter-group">
+                        <h4>📦 Stock</h4>
+                        <label><input type="checkbox" class="filter-check" data-filter="stock" value="in" onchange="filterProducts()" checked /> In Stock</label>
+                        <label><input type="checkbox" class="filter-check" data-filter="stock" value="pre" onchange="filterProducts()" checked /> Pre-Order</label>
+                    </div>
+
+                    <div class="filter-divider"></div>
+
+                    <div class="filter-group sort-group">
+                        <h4>⬆️ Sort By</h4>
+                        <select id="sortSelect" onchange="sortProducts()">
+                            <option value="default">Default</option>
+                            <option value="price-low">Price: Low to High</option>
+                            <option value="price-high">Price: High to Low</option>
+                            <option value="name-asc">Name: A to Z</option>
+                            <option value="name-desc">Name: Z to A</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button class="clear-btn" onclick="clearAllFilters()"><i class="fas fa-times"></i> Clear Filters</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- PRODUCTS -->
+            <section>
+                <div class="product-grid-header">
+                    <h2>Fresh Picks</h2>
+                    <span>Showing <strong id="resultCount">4</strong> products</span>
+                </div>
+                <div class="product-grid" id="productGrid">
+                    <!-- JS Renders Here -->
+                </div>
+            </section>
+
+        </div>
+
+    </main>
+
+    {% block scripts %}
+        {{ product_data|json_script:"product-data" }}
+        <script>
+            const products = JSON.parse(document.getElementById('product-data').textContent);
+        </script>
+        <script src="{% static 'js/shop.js' %}"></script>
+    {% endblock %}
+{% endblock %}

@@ -1,0 +1,1298 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FUTA GreenHouse — Fresh Peppers, Naturally</title>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ---------- RESET & VARIABLES ---------- */
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0B170B;
+      --bg-card: #152615;
+      --bg-card-hover: #1E341E;
+      --text-light: #F0F7F0;
+      --text-muted: #8DA68D;
+      --accent-amber: #F59E0B;
+      --accent-emerald: #34D399;
+      --accent-red: #EF4444;
+      --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.7);
+      --radius: 24px;
+      --transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Space Grotesk', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-light);
+      line-height: 1.6;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* ---------- SCROLLBAR ---------- */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--accent-amber);
+      border-radius: 10px;
+    }
+
+    /* ---------- UTILITY ---------- */
+    .section-tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--accent-amber);
+      background: rgba(245, 158, 11, 0.12);
+      padding: 0.3rem 1.2rem;
+      border-radius: 60px;
+      margin-bottom: 0.5rem;
+      border: 1px solid rgba(245, 158, 11, 0.15);
+    }
+
+    .section-title {
+      font-family: 'Fraunces', serif;
+      font-size: 2.8rem;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+    }
+    .section-title .highlight {
+      color: var(--accent-amber);
+    }
+    .section-subtitle {
+      color: var(--text-muted);
+      font-size: 1.15rem;
+      max-width: 560px;
+    }
+
+    /* ---------- BUTTONS ---------- */
+    .btn-primary {
+      background: var(--accent-amber);
+      color: #0B170B;
+      padding: 0.9rem 2.8rem;
+      border-radius: 60px;
+      font-weight: 700;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      box-shadow: 0 8px 32px rgba(245, 158, 11, 0.25);
+      text-decoration: none;
+    }
+    .btn-primary:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 16px 48px rgba(245, 158, 11, 0.35);
+      background: #FBBF24;
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--text-light);
+      padding: 0.9rem 2.8rem;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 1rem;
+      border: 1.5px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+    }
+    .btn-outline:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: var(--accent-amber);
+      transform: translateY(-4px);
+    }
+
+    /* ---------- NAVBAR ---------- */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      padding: 1.2rem 0;
+      background: rgba(11, 23, 11, 0.8);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      transition: var(--transition);
+    }
+    .navbar.scrolled {
+      background: rgba(11, 23, 11, 0.95);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+    }
+    .navbar .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo {
+      font-family: 'Fraunces', serif;
+      font-size: 1.8rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      text-decoration: none;
+      color: var(--text-light);
+    }
+    .logo span {
+      color: var(--accent-amber);
+    }
+    .logo i {
+      color: var(--accent-emerald);
+      margin-right: 4px;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+      list-style: none;
+    }
+    .nav-links a {
+      text-decoration: none;
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: var(--transition);
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--accent-amber);
+      transition: var(--transition);
+    }
+    .nav-links a:hover {
+      color: var(--text-light);
+    }
+    .nav-links a:hover::after {
+      width: 100%;
+    }
+    .nav-links .btn-primary {
+      padding: 0.5rem 1.8rem;
+      font-size: 0.85rem;
+      box-shadow: none;
+    }
+    .nav-links .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+    }
+    .nav-links .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;          /* 👈 smaller gap between the two buttons */
+      margin-left: auto;    /* 👈 pushes the group to the right */
+      list-style: none;     /* remove bullet if any */
+    }
+    /* Remove underline animation from the button group */
+    .nav-links .nav-actions a::after {
+      display: none !important;
+    }
+    .hamburger {
+      display: none;
+      font-size: 1.6rem;
+      cursor: pointer;
+      color: var(--text-light);
+      background: none;
+      border: none;
+    }
+
+    /* ---------- HERO ---------- */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding: 8rem 0 4rem;
+      background: var(--bg-primary);
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: url('{% static "images/greenhouse.jpg" %}') center/cover no-repeat;
+      opacity: 0.5;
+      filter: saturate(0.8) brightness(0.6);
+    }
+    .hero .container {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem;
+      align-items: center;
+    }
+    .hero-content {
+      max-width: 600px;
+    }
+    .hero-content .badge {
+      display: inline-block;
+      background: rgba(52, 211, 153, 0.15);
+      color: var(--accent-emerald);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.3rem 1.2rem;
+      border-radius: 60px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 1.2rem;
+      border: 1px solid rgba(52, 211, 153, 0.15);
+    }
+    .hero-content h1 {
+      font-family: 'Fraunces', serif;
+      font-size: 4.2rem;
+      font-weight: 800;
+      line-height: 1.05;
+      margin-bottom: 1.2rem;
+    }
+    .hero-content h1 .highlight {
+      color: var(--accent-amber);
+      position: relative;
+    }
+    .hero-content h1 .highlight::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: rgba(245, 158, 11, 0.25);
+      border-radius: 10px;
+    }
+    .hero-content p {
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      margin-bottom: 2.5rem;
+      max-width: 480px;
+    }
+    .hero-cta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .hero-stats {
+      display: flex;
+      gap: 3rem;
+      margin-top: 3.5rem;
+      padding-top: 2.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .hero-stats div {
+      display: flex;
+      flex-direction: column;
+    }
+    .hero-stats strong {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent-amber);
+    }
+    .hero-stats span {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Hero Visual (right side) */
+    .hero-visual {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+    }
+    .hero-visual .img-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: var(--transition);
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .hero-visual .img-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(245, 158, 11, 0.15);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+    .hero-visual .img-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .hero-visual .img-card .label {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0.6rem;
+      background: linear-gradient(transparent, rgba(11, 23, 11, 0.8));
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-align: center;
+    }
+    .hero-visual .img-card:nth-child(1) {
+      grid-column: 1 / 2;
+      grid-row: 1 / 3;
+      aspect-ratio: 0.8;
+    }
+    .hero-visual .img-card:nth-child(2) {
+      grid-column: 2 / 3;
+      grid-row: 1 / 2;
+    }
+    .hero-visual .img-card:nth-child(3) {
+      grid-column: 2 / 3;
+      grid-row: 2 / 3;
+    }
+
+    /* ---------- FEATURES ---------- */
+    .features {
+      padding: 6rem 0;
+      background: var(--bg-primary);
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .feature-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: var(--transition);
+    }
+    .feature-card:hover {
+      transform: translateY(-8px);
+      background: var(--bg-card-hover);
+      border-color: rgba(245, 158, 11, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    }
+    .feature-card .icon {
+      font-size: 2.8rem;
+      color: var(--accent-amber);
+      margin-bottom: 1rem;
+    }
+    .feature-card h4 {
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+    }
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* ---------- PRODUCTS ---------- */
+    .products {
+      padding: 6rem 0;
+      background: var(--bg-primary);
+    }
+    .products-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+    }
+    .product-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: var(--transition);
+      text-decoration: none;
+      color: var(--text-light);
+    }
+    .product-card:hover {
+      transform: translateY(-10px);
+      background: var(--bg-card-hover);
+      border-color: rgba(245, 158, 11, 0.1);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    }
+    .product-card .img-wrap {
+      aspect-ratio: 1;
+      overflow: hidden;
+      background: var(--bg-primary);
+    }
+    .product-card .img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s ease;
+    }
+    .product-card:hover .img-wrap img {
+      transform: scale(1.06);
+    }
+    .product-card .info {
+      padding: 1.2rem 1.2rem 1.5rem;
+      text-align: center;
+    }
+    .product-card .info .name {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .product-card .info .variant {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    .product-card .info .price {
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: var(--accent-amber);
+      margin-top: 0.2rem;
+    }
+    .product-card .badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-size: 0.6rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 0.2rem 1rem;
+      border-radius: 30px;
+      background: var(--accent-red);
+      color: #fff;
+    }
+    .product-card .badge.sale {
+      background: var(--accent-red);
+    }
+    .product-card .badge.fresh {
+      background: var(--accent-emerald);
+      color: #0B170B;
+    }
+    .product-card {
+      position: relative;
+    }
+
+    /* ---------- STATS ---------- */
+    .stats-section {
+      padding: 6rem 0;
+      background: var(--bg-card);
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 2rem;
+      text-align: center;
+    }
+    .stats-grid .stat-item strong {
+      font-family: 'Fraunces', serif;
+      font-size: 3.2rem;
+      font-weight: 800;
+      color: var(--accent-amber);
+      display: block;
+    }
+    .stats-grid .stat-item span {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    /* ---------- TESTIMONIALS ---------- */
+    .testimonials {
+      padding: 6rem 0;
+      background: var(--bg-primary);
+    }
+    .testimonial-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .testimonial-card {
+      background: var(--bg-card);
+      border-radius: var(--radius);
+      padding: 2rem 1.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: var(--transition);
+    }
+    .testimonial-card:hover {
+      transform: translateY(-6px);
+      background: var(--bg-card-hover);
+    }
+    .testimonial-card .stars {
+      color: var(--accent-amber);
+      font-size: 0.9rem;
+      margin-bottom: 0.8rem;
+    }
+    .testimonial-card blockquote {
+      font-style: italic;
+      color: var(--text-light);
+      margin-bottom: 1.2rem;
+      font-size: 0.95rem;
+    }
+    .testimonial-card .author {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .testimonial-card .author img {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(245, 158, 11, 0.2);
+    }
+    .testimonial-card .author .name {
+      font-weight: 600;
+    }
+    .testimonial-card .author .title {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    /* ---------- CTA ---------- */
+    .cta-section {
+      padding: 6rem 0;
+      background: var(--bg-primary);
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section .cta-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      background: url('https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=1600&q=80') center/cover no-repeat;
+      opacity: 0.2;
+    }
+    .cta-section .container {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      max-width: 700px;
+    }
+    .cta-section h2 {
+      font-family: 'Fraunces', serif;
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 0.8rem;
+    }
+    .cta-section p {
+      color: var(--text-muted);
+      font-size: 1.15rem;
+      margin-bottom: 2rem;
+    }
+    .cta-section .btn-group {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ---------- FOOTER ---------- */
+    .footer {
+      padding: 4rem 0 2rem;
+      background: var(--bg-primary);
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+    }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+    .footer-brand .logo {
+      font-size: 1.6rem;
+    }
+    .footer-brand p {
+      color: var(--text-muted);
+      max-width: 320px;
+      margin-top: 0.5rem;
+    }
+    .footer-social {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.2rem;
+    }
+    .footer-social a {
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      transition: var(--transition);
+    }
+    .footer-social a:hover {
+      color: var(--accent-amber);
+    }
+    .footer-links h5 {
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+    .footer-links ul {
+      list-style: none;
+    }
+    .footer-links ul li {
+      margin-bottom: 0.5rem;
+    }
+    .footer-links ul li a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: var(--transition);
+      font-size: 0.9rem;
+    }
+    .footer-links ul li a:hover {
+      color: var(--text-light);
+    }
+    .footer-bottom {
+      border-top: 1px solid rgba(255, 255, 255, 0.04);
+      padding-top: 2rem;
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    .footer-bottom .heart {
+      color: var(--accent-red);
+    }
+
+    /* ---------- ANIMATIONS ---------- */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 1024px) {
+      .hero .container {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .hero-content {
+        max-width: 100%;
+      }
+      .hero-content p {
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero-cta {
+        justify-content: center;
+      }
+      .hero-stats {
+        justify-content: center;
+      }
+      .hero-visual {
+        max-width: 500px;
+        margin: 0 auto;
+      }
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .testimonial-grid {
+        grid-template-columns: 1fr;
+      }
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .footer-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 1.2rem;
+      }
+      .nav-links {
+        display: none;
+        flex-direction: column;
+        position: absolute;
+        top: 80px;
+        left: 0;
+        width: 100%;
+        background: var(--bg-primary);
+        padding: 2rem;
+        gap: 1.2rem;
+        border-bottom: 2px solid var(--accent-amber);
+      }
+      .nav-links.open {
+        display: flex;
+      }
+      .hamburger {
+        display: block;
+      }
+
+      .hero-content h1 {
+        font-size: 2.8rem;
+      }
+      .hero-visual {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.8rem;
+      }
+      .hero-visual .img-card:nth-child(1) {
+        grid-column: 1 / 2;
+        grid-row: 1 / 3;
+      }
+      .section-title {
+        font-size: 2.2rem;
+      }
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+      .product-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+      }
+      .stats-grid .stat-item strong {
+        font-size: 2.4rem;
+      }
+      .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+      .cta-section h2 {
+        font-size: 2.2rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-content h1 {
+        font-size: 2.2rem;
+      }
+      .product-grid {
+        grid-template-columns: 1fr;
+        max-width: 320px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .hero-visual .img-card .label {
+        font-size: 0.6rem;
+        padding: 0.3rem;
+      }
+      .hero-stats {
+        flex-wrap: wrap;
+        gap: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ========================== -->
+  <!-- NAVBAR -->
+  <!-- ========================== -->
+  <header class="navbar" id="navbar">
+    <div class="container">
+      <a href="#" class="logo">
+        <i class="fas fa-leaf"></i>FUTA<span>.</span>Green
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#features">Features</a></li>
+        <li><a href="{% url 'products:shop' %}">Shop</a></li>
+        <li><a href="#testimonials">Testimonials</a></li>
+
+        <!-- Button group with smaller gap -->
+        <li class="nav-actions">
+          <a href="{% url 'account_login' %}" class="btn-outline" style="padding: 0.4rem 1.5rem; font-size: 0.85rem;">
+            <i class="fas fa-sign-in-alt"></i> Sign In
+          </a>
+          <a href="{% url 'account_signup' %}" class="btn-primary" style="padding: 0.4rem 1.8rem; font-size: 0.85rem;">
+            Get Started
+          </a>
+        </li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- ========================== -->
+  <!-- HERO -->
+  <!-- ========================== -->
+  <section class="hero" id="hero">
+    <div class="hero-bg"></div>
+    <div class="container">
+      <div class="hero-content">
+        <span class="badge"><i class="fas fa-seedling"></i> 100% Organic · Fresh Daily</span>
+        <h1>Fire &amp; <span class="highlight">Sweetness</span><br />from FUTA Soil</h1>
+        <p>
+          Premium habanero and bell peppers — harvested at dawn, packed with flavour,
+          and delivered fresh across campus.
+        </p>
+        <div class="hero-cta">
+          <a href="#products" class="btn-primary">
+            <i class="fas fa-store"></i> Shop Now
+          </a>
+          <a href="#features" class="btn-outline">
+            <i class="fas fa-chevron-right"></i> Learn More
+          </a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <strong>100%</strong>
+            <span>Organic</span>
+          </div>
+          <div>
+            <strong>24hr</strong>
+            <span>Freshness Guarantee</span>
+          </div>
+          <div>
+            <strong>🚚</strong>
+            <span>Campus Delivery</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="img-card">
+          <img
+          src="https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=600&h=800&fit=crop&q=80"
+          alt="Red Habanero peppers"
+          loading="lazy"
+          />
+          <span class="label">🌶️ Red Habanero</span>
+        </div>
+        <div class="img-card">
+          <img
+          src="https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&h=400&fit=crop&q=80"
+          alt="Yellow Habanero peppers"
+          loading="lazy"
+          />
+          <span class="label">🌶️ Yellow Habanero</span>
+        </div>
+        <div class="img-card">
+          <img
+          src="https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&h=400&fit=crop&q=80"
+          alt="Red Bell pepper"
+          loading="lazy"
+          />
+          <span class="label">🫑 Red Bell</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== -->
+  <!-- FEATURES -->
+  <!-- ========================== -->
+  <section class="features" id="features">
+    <div class="container">
+      <div style="text-align: center;">
+        <span class="section-tag">Why Choose Us</span>
+        <h2 class="section-title">Grown with <span class="highlight">Passion</span></h2>
+        <p class="section-subtitle" style="margin: 0 auto;">
+          Every pepper is nurtured with care, from seed to harvest.
+        </p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card fade-up">
+          <div class="icon"><i class="fas fa-seedling"></i></div>
+          <h4>100% Organic</h4>
+          <p>Grown without synthetic pesticides or fertilisers — pure, natural flavour.</p>
+        </div>
+        <div class="feature-card fade-up">
+          <div class="icon"><i class="fas fa-clock"></i></div>
+          <h4>24hr Freshness</h4>
+          <p>Harvested at dawn and delivered to you within 24 hours.</p>
+        </div>
+        <div class="feature-card fade-up">
+          <div class="icon"><i class="fas fa-truck-fast"></i></div>
+          <h4>Campus Delivery</h4>
+          <p>Straight to your faculty, hostel, or office — fast and reliable.</p>
+        </div>
+        <div class="feature-card fade-up">
+          <div class="icon"><i class="fas fa-hand-holding-heart"></i></div>
+          <h4>Community Grown</h4>
+          <p>Proudly grown by FUTA students and staff, supporting local agriculture.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== -->
+  <!-- PRODUCTS -->
+  <!-- ========================== -->
+  <section class="products" id="products">
+    <div class="container">
+      <div class="products-header">
+        <div>
+          <span class="section-tag">Our Harvest</span>
+          <h2 class="section-title">Fresh <span class="highlight">Picks</span></h2>
+          <p class="section-subtitle">Straight from the FUTA greenhouse to your table.</p>
+        </div>
+        <a href="#" class="btn-outline" style="padding: 0.6rem 1.8rem; font-size: 0.9rem;">
+          View All <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+      <div class="product-grid">
+        <!-- Red Habanero -->
+        <a href="#" class="product-card fade-up">
+          <span class="badge sale">Sale</span>
+          <div class="img-wrap">
+            <img
+            src="https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=400&h=400&fit=crop&q=80"
+            alt="Red Habanero"
+            loading="lazy"
+            />
+          </div>
+          <div class="info">
+            <div class="name">Red Habanero</div>
+            <div class="variant">Fruity · Extra Hot</div>
+            <div class="price">₦1,500 <small style="font-weight:400;color:var(--text-muted);font-size:0.7rem;">/250g</small></div>
+          </div>
+        </a>
+
+        <!-- Yellow Habanero -->
+        <a href="#" class="product-card fade-up">
+          <span class="badge fresh">Fresh</span>
+          <div class="img-wrap">
+            <img
+            src="https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&h=400&fit=crop&q=80"
+            alt="Yellow Habanero"
+            loading="lazy"
+            />
+          </div>
+          <div class="info">
+            <div class="name">Yellow Habanero</div>
+            <div class="variant">Citrusy · Very Hot</div>
+            <div class="price">₦1,600 <small style="font-weight:400;color:var(--text-muted);font-size:0.7rem;">/250g</small></div>
+          </div>
+        </a>
+
+        <!-- Red Bell -->
+        <a href="#" class="product-card fade-up">
+          <div class="img-wrap">
+            <img
+            src="https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&h=400&fit=crop&q=80"
+            alt="Red Bell Pepper"
+            loading="lazy"
+            />
+          </div>
+          <div class="info">
+            <div class="name">Red Bell</div>
+            <div class="variant">Sweet · Crunchy</div>
+            <div class="price">₦1,200 <small style="font-weight:400;color:var(--text-muted);font-size:0.7rem;">/piece</small></div>
+          </div>
+        </a>
+
+        <!-- Yellow Bell -->
+        <a href="#" class="product-card fade-up">
+          <span class="badge fresh">Fresh</span>
+          <div class="img-wrap">
+            <img
+            src="https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=400&h=400&fit=crop&q=80"
+            alt="Yellow Bell Pepper"
+            loading="lazy"
+            />
+          </div>
+          <div class="info">
+            <div class="name">Yellow Bell</div>
+            <div class="variant">Mild · Juicy</div>
+            <div class="price">₦1,300 <small style="font-weight:400;color:var(--text-muted);font-size:0.7rem;">/piece</small></div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== -->
+  <!-- STATS -->
+  <!-- ========================== -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item fade-up">
+          <strong>4+</strong>
+          <span>Pepper Varieties</span>
+        </div>
+        <div class="stat-item fade-up">
+          <strong>500kg+</strong>
+          <span>Harvested Monthly</span>
+        </div>
+        <div class="stat-item fade-up">
+          <strong>100%</strong>
+          <span>Organic Certified</span>
+        </div>
+        <div class="stat-item fade-up">
+          <strong>200+</strong>
+          <span>Happy Customers</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== -->
+  <!-- TESTIMONIALS -->
+  <!-- ========================== -->
+  <section class="testimonials" id="testimonials">
+    <div class="container">
+      <div style="text-align: center;">
+        <span class="section-tag">Testimonials</span>
+        <h2 class="section-title">What Our <span class="highlight">Customers</span> Say</h2>
+        <p class="section-subtitle" style="margin: 0 auto;">
+          Real feedback from real people who love our peppers.
+        </p>
+      </div>
+      <div class="testimonial-grid">
+        <div class="testimonial-card fade-up">
+          <div class="stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <blockquote>
+            “The red bell peppers are massive! Perfect for my weekly stir‑fry. FUTA greenhouse is a lifesaver.”
+          </blockquote>
+          <div class="author">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face&q=80" alt="Chidi E." loading="lazy" />
+            <div>
+              <div class="name">Miracle James</div>
+              <div class="title">Food Science Dept.</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card fade-up">
+          <div class="stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <blockquote>
+            “I use the yellow habaneros for my pepper soup business. The heat and aroma are unmatched in Akure.”
+          </blockquote>
+          <div class="author">
+            <img src="https://images.unsplash.com/photo-1494790108372-be9c29b29330?w=100&h=100&fit=crop&crop=face&q=80" alt="Funmi A." loading="lazy" />
+            <div>
+              <div class="name">Poroye Bright</div>
+              <div class="title">Local Caterer</div>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card fade-up">
+          <div class="stars">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+          </div>
+          <blockquote>
+            “Ordering is seamless. I pre‑order my yellow bells and pick them up right after my lecture.”
+          </blockquote>
+          <div class="author">
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face&q=80" alt="Tunde O." loading="lazy" />
+            <div>
+              <div class="name">Abdulkarim Idris</div>
+              <div class="title">Engineering Student</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== -->
+  <!-- CTA -->
+  <!-- ========================== -->
+  <section class="cta-section" id="cta">
+    <div class="cta-bg"></div>
+    <div class="container">
+      <span class="section-tag" style="background: rgba(52,211,153,0.12); color: var(--accent-emerald); border-color: rgba(52,211,153,0.15);">
+        <i class="fas fa-leaf"></i> Get Fresh Peppers Today
+      </span>
+      <h2>Ready to <span class="highlight">Taste the Difference?</span></h2>
+      <p>
+        Join the FUTA community and enjoy the freshest, most flavourful peppers on campus.
+        Order now and get same‑day delivery.
+      </p>
+      <div class="btn-group">
+        <a href="#products" class="btn-primary"><i class="fas fa-store"></i> Shop Now</a>
+        <a href="#" class="btn-outline"><i class="fas fa-phone"></i> Contact Us</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================== -->
+  <!-- FOOTER -->
+  <!-- ========================== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="logo">
+            <i class="fas fa-leaf"></i>FUTA<span>.</span>Green
+          </a>
+          <p>
+            Fresh, organic peppers grown with care in the Federal University of Technology,
+            Akure greenhouse. Supporting local agriculture, one pepper at a time.
+          </p>
+          <div class="footer-social">
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h5>Quick Links</h5>
+          <ul>
+            <li><a href="#products">Shop</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#">Harvest Calendar</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h5>Support</h5>
+          <ul>
+            <li><a href="#">Delivery Info</a></li>
+            <li><a href="#">Payment</a></li>
+            <li><a href="#">Return Policy</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h5>Contact</h5>
+          <ul>
+            <li><a href="#"><i class="fas fa-phone"></i> +234 80 1234 5678</a></li>
+            <li><a href="#"><i class="fas fa-envelope"></i> greenhouse@futa.edu.ng</a></li>
+            <li><a href="#"><i class="fas fa-map-pin"></i> FUTA Campus, Akure</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 FUTA GreenHouse. All rights reserved.</span>
+        <span>Built with <i class="fas fa-heart heart"></i> by the FUTA Intern</span>
+      </div>
+    </div>
+  </footer>
+
+
+  <!-- ========================== -->
+  <!-- DJANGO MESSAGES -> TOASTS -->
+  <!-- ========================== -->
+  {% if messages %}
+  <script>
+      document.addEventListener('DOMContentLoaded', function() {
+          {% for message in messages %}
+              (function() {
+                  var msg = "{{ message|escapejs }}";
+                  var tag = "{{ message.tags }}";
+                  if (tag === 'success') {
+                      alertSuccess(msg);
+                  } else if (tag === 'error') {
+                      alertError(msg);
+                  } else if (tag === 'warning') {
+                      alertWarning(msg);
+                  } else {
+                      alertInfo(msg);
+                  }
+              })();
+          {% endfor %}
+      });
+  </script>
+  {% endif %}
+
+  <!-- ========================== -->
+  <!-- JAVASCRIPT -->
+  <!-- ========================== -->
+  <script>
+    // ---------- NAVBAR SCROLL ----------
+    const navbar = document.getElementById('navbar');
+    let lastScroll = 0;
+    window.addEventListener('scroll', () => {
+      const currentScroll = window.pageYOffset;
+      if (currentScroll > 50) {
+        navbar.classList.add('scrolled');
+      } else {
+        navbar.classList.remove('scrolled');
+      }
+      lastScroll = currentScroll;
+    });
+
+    // ---------- MOBILE NAV TOGGLE ----------
+    const hamburger = document.getElementById('hamburger');
+    const navLinks = document.getElementById('navLinks');
+    hamburger.addEventListener('click', () => {
+      navLinks.classList.toggle('open');
+    });
+    // Close nav on link click (mobile)
+    navLinks.querySelectorAll('a').forEach(link => {
+      link.addEventListener('click', () => {
+        navLinks.classList.remove('open');
+      });
+    });
+
+    // ---------- SCROLL ANIMATIONS (Intersection Observer) ----------
+    const fadeElements = document.querySelectorAll('.fade-up');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, {
+      threshold: 0.15,
+      rootMargin: '0px 0px -30px 0px'
+    });
+    fadeElements.forEach(el => observer.observe(el));
+
+    // ---------- SMOOTH SCROLL FOR NAV LINKS ----------
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        const href = this.getAttribute('href');
+        if (href === '#') return;
+        e.preventDefault();
+        const target = document.querySelector(href);
+        if (target) {
+          const offsetTop = target.getBoundingClientRect().top + window.pageYOffset - 80;
+          window.scrollTo({
+            top: offsetTop,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,477 @@
+{% extends "admin_base.html" %}
+{% block title %}FUTA.Green - Products Management{% endblock %}
+{% load static %}
+
+{% block content %}
+<main class="main-content">
+    <header class="topbar">
+        <div class="page-title">
+            <button class="hamburger-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <h1>Products</h1>
+            <p>Manage your product inventory</p>
+        </div>
+        
+    </header>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <form id="filterForm" method="get" class="filter-form">
+            <div class="filter-group">
+                <input type="text" name="search" placeholder="Search products..." value="{{ current_filters.search }}" />
+            </div>
+            <div class="filter-group">
+                <select name="category">
+                    <option value="">All Categories</option>
+                    {% for value, label in category_choices %}
+                    <option value="{{ value }}" {% if current_filters.category == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <select name="color">
+                    <option value="">All Colors</option>
+                    {% for value, label in color_choices %}
+                    <option value="{{ value }}" {% if current_filters.color == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <select name="grade">
+                    <option value="">All Grades</option>
+                    {% for value, label in grade_choices %}
+                    <option value="{{ value }}" {% if current_filters.grade == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="filter-group">
+                <select name="is_available">
+                    <option value="">All Status</option>
+                    <option value="true" {% if current_filters.is_available == 'true' %}selected{% endif %}>Available</option>
+                    <option value="false" {% if current_filters.is_available == 'false' %}selected{% endif %}>Unavailable</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            <a href="{% url 'business_admin:products' %}" class="btn-sm" style="background: rgba(255,255,255,0.06); color: var(--text-muted); border-color: transparent;">
+                <i class="fas fa-times"></i> Clear
+            </a>
+        </form>
+    </div>
+
+    <div id="tableContainer">
+        <!-- Products Table -->
+        <div class="table-card">
+            <div class="table-header">
+                <h3><i class="fas fa-boxes" style="color: var(--accent-emerald);"></i> All Products</h3>
+                <div class="table-actions">
+                    <span style="color: var(--text-muted); font-size: 0.9rem; margin-right: 1rem;">
+                        {{ page_obj.paginator.count }} product{{ page_obj.paginator.count|pluralize }}
+                    </span>
+                    <button class="btn-sm" onclick="openAddProductModal()"><i class="fas fa-plus"></i> Add Product</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table class="admin-table" id="productsTable">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Color</th>
+                            <th>Grade</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Status</th>
+                            <th style="text-align: center;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td><strong>{{ product.name }}</strong></td>
+                            <td>{{ product.get_category_display }}</td>
+                            <td>{{ product.get_color_display }}</td>
+                            <td>{{ product.get_grade_display }}</td>
+                            <td>₦{{ product.price|floatformat:"0" }}</td>
+                            <td>{{ product.stock }} {{ product.unit }}</td>
+                            <td>
+                                <span class="status-badge {% if product.is_available %}in-stock{% else %}out-of-stock{% endif %}">
+                                    {% if product.is_available %}Available{% else %}Unavailable{% endif %}
+                                </span>
+                            </td>
+                            <td style="text-align: center;">
+                                <button class="action-btn edit"
+                                        data-id="{{ product.id }}"
+                                        data-type="product"
+                                        data-name="{{ product.name }}"
+                                        data-price="{{ product.price }}"
+                                        data-stock="{{ product.stock }}"
+                                        data-available="{{ product.is_available|yesno:"true,false" }}"
+                                        onclick="openEditModal(this.dataset)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete"
+                                        onclick="openDeleteModal({{ product.id }}, '{{ product.name }}', 'product')">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">No products found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <div class="pagination">
+                <span class="step-links">
+                    {% if page_obj.has_previous %}
+                        <a href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">&laquo; First</a>
+                        <a href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Previous</a>
+                    {% endif %}
+                    <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Next</a>
+                        <a href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" class="page-link">Last &raquo;</a>
+                    {% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</main>
+
+<!-- ========================== -->
+<!-- EDIT MODAL (reused from dashboard) -->
+<!-- ========================== -->
+<div id="editModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container" style="max-width: 520px;">
+        <div class="modal-header">
+            <h2><i class="fas fa-edit"></i> Edit <span id="editModalTitle">Item</span></h2>
+            <button class="modal-close" onclick="closeEditModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editForm">
+                <input type="hidden" id="editId" value="">
+                <input type="hidden" id="editType" value="">
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" id="editName" class="form-control" readonly disabled />
+                </div>
+                <div id="productFields" style="display: none;">
+                    <div class="form-group">
+                        <label>Price (₦)</label>
+                        <input type="number" id="editPrice" class="form-control" step="0.01" min="0" />
+                    </div>
+                    <div class="form-group">
+                        <label>Stock</label>
+                        <input type="number" id="editStock" class="form-control" min="0" />
+                    </div>
+                    <div class="form-group">
+                        <label><input type="checkbox" id="editAvailable" /> Available</label>
+                    </div>
+                </div>
+                <!-- Order fields (hidden for products) -->
+                <div id="orderFields" style="display: none;">
+                    <div class="form-group"><label>Status</label><select id="editStatus" class="form-control">...</select></div>
+                    <div class="form-group"><label>Total</label><input type="text" id="editTotal" class="form-control" readonly /></div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-outline" onclick="closeEditModal()">Cancel</button>
+            <button class="btn-primary" id="saveEditBtn" onclick="saveEdit()"><i class="fas fa-save"></i> Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================== -->
+<!-- ADD PRODUCT MODAL -->
+<!-- ========================== -->
+<div id="addProductModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container" style="max-width: 560px;">
+        <div class="modal-header">
+            <h2><i class="fas fa-plus-circle" style="color: var(--accent-emerald);"></i> Add Product</h2>
+            <button class="modal-close" onclick="closeAddProductModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="addProductForm">
+                <div class="form-group">
+                    <label>Name <span class="required">*</span></label>
+                    <input type="text" id="addName" class="form-control" required />
+                </div>
+                <div class="form-group">
+                    <label>Category <span class="required">*</span></label>
+                    <select id="addCategory" class="form-control" required>
+                        <option value="">Select Category</option>
+                        {% for value, label in category_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Color <span class="required">*</span></label>
+                    <select id="addColor" class="form-control" required>
+                        <option value="">Select Color</option>
+                        {% for value, label in color_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Grade <span class="required">*</span></label>
+                    <select id="addGrade" class="form-control" required>
+                        <option value="">Select Grade</option>
+                        {% for value, label in grade_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Price (₦) <span class="required">*</span></label>
+                    <input type="number" id="addPrice" class="form-control" step="0.01" min="0" required />
+                </div>
+                <div class="form-group">
+                    <label>Stock <span class="required">*</span></label>
+                    <input type="number" id="addStock" class="form-control" min="0" required />
+                </div>
+                <div class="form-group">
+                    <label>Unit <span class="required">*</span></label>
+                    <select id="addUnit" class="form-control" required>
+                        <option value="">Select Unit</option>
+                        {% for value, label in unit_choices %}
+                        <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="addDescription" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="addAvailable" checked /> Available</label>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-outline" onclick="closeAddProductModal()">Cancel</button>
+            <button class="btn-primary" id="saveAddProductBtn" onclick="saveAddProduct()">
+                <i class="fas fa-plus"></i> Add Product
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ========================== -->
+<!-- DELETE CONFIRMATION MODAL (reused) -->
+<!-- ========================== -->
+<div id="deleteModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container" style="max-width: 420px;">
+        <div class="modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+            <h2 style="color: var(--accent-red);"><i class="fas fa-exclamation-triangle"></i> Confirm Delete</h2>
+            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin-bottom: 0.5rem;">Are you sure you want to delete <strong id="deleteItemName"></strong>?</p>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">This action cannot be undone.</p>
+            <input type="hidden" id="deleteItemId" value="">
+            <input type="hidden" id="deleteItemType" value="">
+        </div>
+        <div class="modal-footer" style="border-top: none; padding-top: 0;">
+            <button class="btn-outline" onclick="closeDeleteModal()">Cancel</button>
+            <button class="btn-danger" id="confirmDeleteBtn"><i class="fas fa-trash-alt"></i> Delete</button>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // ========== PRODUCT FUNCTIONS ==========
+
+    // Open Add Product Modal
+    function openAddProductModal() {
+        document.getElementById('addProductModal').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        // Reset form
+        document.getElementById('addProductForm').reset();
+        document.getElementById('addAvailable').checked = true;
+    }
+
+    function closeAddProductModal() {
+        document.getElementById('addProductModal').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+
+    // Save Add Product
+    function saveAddProduct() {
+        const payload = {
+            name: document.getElementById('addName').value.trim(),
+            category: document.getElementById('addCategory').value,
+            color: document.getElementById('addColor').value,
+            grade: document.getElementById('addGrade').value,
+            price: parseFloat(document.getElementById('addPrice').value),
+            stock: parseInt(document.getElementById('addStock').value),
+            unit: document.getElementById('addUnit').value,
+            is_available: document.getElementById('addAvailable').checked,
+            description: document.getElementById('addDescription').value.trim(),
+        };
+
+        // Basic validation
+        for (let key of ['name', 'category', 'color', 'grade', 'price', 'stock', 'unit']) {
+            if (!payload[key]) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+        }
+
+        const btn = document.getElementById('saveAddProductBtn');
+        const orig = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...';
+
+        fetch('/business/admin/api/add-product/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Product added successfully!');
+                location.reload();
+            } else {
+                alert('❌ Error: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => alert('❌ Network error. Please try again.'))
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = orig;
+            closeAddProductModal();
+        });
+    }
+
+    // Reuse delete and edit functions from dashboard.js
+    // (They are already loaded via admin.js or dashboard.js)
+    // Ensure getCSRFToken is available.
+     // ========== AJAX LIVE FILTER ==========
+
+    let debounceTimer;
+    const filterForm = document.getElementById('filterForm');
+
+    function fetchTableData(url) {
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('Network response was not ok');
+            return res.text();
+        })
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newTableContainer = doc.getElementById('tableContainer');
+            if (newTableContainer) {
+                document.getElementById('tableContainer').innerHTML = newTableContainer.innerHTML;
+                // Update URL in address bar without reload
+                const params = new URLSearchParams(new FormData(filterForm));
+                const newUrl = window.location.pathname + '?' + params.toString();
+                history.pushState({}, '', newUrl);
+                // Re-attach event listeners
+                attachPaginationListeners();
+                bindActionButtons();
+            }
+        })
+        .catch(err => console.error('AJAX fetch error:', err));
+    }
+
+    function attachPaginationListeners() {
+        document.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                fetchTableData(this.href);
+            });
+        });
+    }
+
+    function bindActionButtons() {
+        document.querySelectorAll('.admin-table .edit').forEach(btn => {
+            btn.removeEventListener('click', editClickHandler);
+            btn.addEventListener('click', editClickHandler);
+        });
+    }
+
+    function editClickHandler(e) {
+        const data = {
+            id: this.dataset.id,
+            type: this.dataset.type,
+            name: this.dataset.name,
+            status: this.dataset.status,
+            total: this.dataset.total,
+            price: this.dataset.price,
+            stock: this.dataset.stock,
+            available: this.dataset.available === 'true',
+        };
+        // openEditModal must be globally defined (from dashboard.js)
+        openEditModal(data);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initial setup
+        attachPaginationListeners();
+        bindActionButtons();
+
+        // All form fields (input + select) trigger auto-submit
+        filterForm.querySelectorAll('input, select').forEach(field => {
+            const eventType = field.tagName === 'SELECT' ? 'change' : 'input';
+            field.addEventListener(eventType, function() {
+                clearTimeout(debounceTimer);
+                const params = new URLSearchParams(new FormData(filterForm));
+                const url = window.location.pathname + '?' + params.toString();
+                if (field.tagName === 'SELECT') {
+                    fetchTableData(url);
+                } else {
+                    debounceTimer = setTimeout(() => {
+                        fetchTableData(url);
+                    }, 400);
+                }
+            });
+        });
+
+        // Filter button
+        document.querySelector('.filter-form .btn-sm[type="submit"]')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            const params = new URLSearchParams(new FormData(filterForm));
+            fetchTableData(window.location.pathname + '?' + params.toString());
+        });
+
+        // Clear button
+        document.querySelector('.filter-form .btn-sm[href]')?.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Reset all form fields to empty/default
+            filterForm.querySelectorAll('input').forEach(input => input.value = '');
+            filterForm.querySelectorAll('select').forEach(select => select.selectedIndex = 0);
+            // Now fetch the clean URL (the href of the link)
+            fetchTableData(this.href);
+        });
+    });
+
+    // CSRF helper (if not already defined)
+    function getCSRFToken() {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') return value;
+        }
+        return '';
+    }
+
+    // Expose functions to global scope for inline onclick
+    window.openAddProductModal = openAddProductModal;
+    window.closeAddProductModal = closeAddProductModal;
+    window.saveAddProduct = saveAddProduct;
+    window.getCSRFToken = getCSRFToken;
+</script>
+{% endblock %}
+
+{% endblock %}

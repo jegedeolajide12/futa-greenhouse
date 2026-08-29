@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FUTA GreenHouse · Admin Dashboard</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}" />
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+
+    <!-- Global Alert System -->
+    <script src="{% static 'js/alert.js' %}"></script>
+    
+</head>
+<body>
+
+<div class="admin-wrapper">
+
+    <!-- ========================== -->
+    <!-- SIDEBAR -->
+    <!-- ========================== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="logo">
+            <i class="fas fa-leaf"></i>FUTA<span>.</span>Green
+            <small>Admin Dashboard</small>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-label">Main</div>
+            <a href="{% url 'business_admin:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="fas fa-chart-pie"></i> Dashboard</a>
+            <a href="{% url 'business_admin:orders' %}" class="{% if request.resolver_match.url_name == 'orders' %}active{% endif %}"><i class="fas fa-shopping-bag"></i> Orders <span class="badge">12</span></a>
+            <a href="{% url 'business_admin:products' %}" class="{% if request.resolver_match.url_name == 'products' %}active{% endif %}">
+                <i class="fas fa-pepper-hot"></i> Products
+            </a>
+            <a href="{% url 'business_admin:customers' %}" class="{% if request.resolver_match.url_name == 'customers' %}active{% endif %}">
+                <i class="fas fa-users"></i> Customers
+            </a>
+            <a href="{% url 'business_admin:deliveries' %}" class="{% if request.resolver_match.url_name == 'deliveries' %}active{% endif %}">
+                <i class="fas fa-truck"></i> Deliveries
+            </a>
+
+            <div class="nav-label" style="margin-top: 1.5rem;">Management</div>
+            <a href="{% url 'business_admin:categories' %}" class="{% if request.resolver_match.url_name == 'categories' %}active{% endif %}">
+                <i class="fas fa-tags"></i> Categories
+            </a>
+            <a href="{% url 'business_admin:discounts' %}" class="{% if request.resolver_match.url_name == 'discounts' %}active{% endif %}">
+                <i class="fas fa-tags"></i> Discounts
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="#" id="logoutLink">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+        <!-- Hidden logout form for allauth -->
+        <form id="logoutForm" method="POST" action="{% url 'account_logout' %}" style="display: none;">
+            {% csrf_token %}
+        </form>
+    </aside>
+
+    <!-- ========================== -->
+    <!-- LOGOUT CONFIRMATION MODAL -->
+    <!-- ========================== -->
+    <div id="logoutModal" class="modal-overlay" style="display: none;">
+        <div class="modal-container" style="max-width: 420px;">
+            <div class="modal-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.2);">
+                <h2 style="color: var(--accent-red);"><i class="fas fa-sign-out-alt"></i> Confirm Logout</h2>
+                <button class="modal-close" onclick="closeLogoutModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 0.5rem;">
+                    Are you sure you want to log out?
+                </p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">
+                    You will be redirected to the login page.
+                </p>
+            </div>
+            <div class="modal-footer" style="border-top: none; padding-top: 0;">
+                <button class="btn-outline" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn-danger" id="confirmLogoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Overlay (mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+        {% block content %}
+
+        {% endblock %}
+    </div>
+    
+    <script src="{% static "js/admin/admin.js" %}"></script>
+</body>
+</html>
