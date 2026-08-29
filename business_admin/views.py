@@ -299,18 +299,23 @@ class ProductsAdminView(LoginRequiredMixin, ListView):
 @login_required
 def admin_add_product(request):
     try:
-        data = json.loads(request.body)
-        name = data.get('name')
-        category = data.get('category')
-        color = data.get('color')
-        grade = data.get('grade')
-        price = data.get('price')
-        stock = data.get('stock')
-        unit = data.get('unit')
-        is_available = data.get('is_available', True)
-        description = data.get('description', '')
-        if not name or not category or not color or not grade or price is None or stock is None:
+        # Use request.POST for text fields, request.FILES for image
+        name = request.POST.get('name')
+        category_name = request.POST.get('category')
+        color = request.POST.get('color')
+        grade = request.POST.get('grade')
+        price = request.POST.get('price')
+        stock = request.POST.get('stock')
+        unit = request.POST.get('unit')
+        is_available = request.POST.get('is_available') == 'on' or request.POST.get('is_available') == 'true'
+        description = request.POST.get('description', '')
+        image = request.FILES.get('image')
+
+        if not name or not category_name or not color or not grade or price is None or stock is None:
             return JsonResponse({'error': 'Missing required fields'}, status=400)
+
+        category, _ = Category.objects.get_or_create(name=category_name)
+
         product = Product.objects.create(
             name=name,
             category=category,
@@ -321,7 +326,9 @@ def admin_add_product(request):
             unit=unit,
             is_available=is_available,
             description=description,
+            featured_image=image,  # assign the uploaded file
         )
+
         return JsonResponse({'success': True, 'product_id': product.id})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)

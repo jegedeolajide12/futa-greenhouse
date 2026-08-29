@@ -842,6 +842,13 @@
         <li><a href="#testimonials">Testimonials</a></li>
 
         <!-- Button group with smaller gap -->
+        {% if request.user.is_authenticated %}
+        <li class="nav-actions">
+          <a href="{% url 'account_logout' %}" class="btn-outline" style="padding: 0.4rem 1.5rem; font-size: 0.85rem;">
+            <i class="fas fa-sign-in-alt"></i> Logout
+          </a>
+        </li>
+        {% else %}
         <li class="nav-actions">
           <a href="{% url 'account_login' %}" class="btn-outline" style="padding: 0.4rem 1.5rem; font-size: 0.85rem;">
             <i class="fas fa-sign-in-alt"></i> Sign In
@@ -850,6 +857,7 @@
             Get Started
           </a>
         </li>
+        {% endif %}
       </ul>
       <button class="hamburger" id="hamburger" aria-label="Toggle navigation">
         <i class="fas fa-bars"></i>
@@ -897,7 +905,7 @@
       <div class="hero-visual">
         <div class="img-card">
           <img
-          src="https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=600&h=800&fit=crop&q=80"
+          src="{% static 'images/red-haba.webp' %}"
           alt="Red Habanero peppers"
           loading="lazy"
           />
@@ -905,7 +913,7 @@
         </div>
         <div class="img-card">
           <img
-          src="https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&h=400&fit=crop&q=80"
+          src="{% static 'images/yellow-habanero.webp' %}"
           alt="Yellow Habanero peppers"
           loading="lazy"
           />
@@ -913,7 +921,7 @@
         </div>
         <div class="img-card">
           <img
-          src="https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&h=400&fit=crop&q=80"
+          src="{% static 'images/red-bell-pepper.webp' %}"
           alt="Red Bell pepper"
           loading="lazy"
           />
@@ -971,77 +979,30 @@
           <h2 class="section-title">Fresh <span class="highlight">Picks</span></h2>
           <p class="section-subtitle">Straight from the FUTA greenhouse to your table.</p>
         </div>
-        <a href="#" class="btn-outline" style="padding: 0.6rem 1.8rem; font-size: 0.9rem;">
+        <a href="{% url 'products:shop' %}" class="btn-outline" style="padding: 0.6rem 1.8rem; font-size: 0.9rem;">
           View All <i class="fas fa-arrow-right"></i>
         </a>
       </div>
       <div class="product-grid">
         <!-- Red Habanero -->
-        <a href="#" class="product-card fade-up">
+        {% for product in products %}
+        <a href="{% url 'products:product_detail' product.slug %}" class="product-card fade-up">
           <span class="badge sale">Sale</span>
           <div class="img-wrap">
             <img
-            src="https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=400&h=400&fit=crop&q=80"
-            alt="Red Habanero"
+            src="{{ product.featured_image.url }}"
+            alt="{{ product.name }}"
             loading="lazy"
             />
           </div>
           <div class="info">
-            <div class="name">Red Habanero</div>
-            <div class="variant">Fruity · Extra Hot</div>
-            <div class="price">₦1,500 <small style="font-weight:400;color:var(--text-muted);font-size:0.7rem;">/250g</small></div>
+            <div class="name">{{ product.name }}</div>
+            <div class="variant">{{ product.variant }}</div>
+            <div class="price">₦{{ product.discount_price }} <small style="font-weight:400;color:var(--text-muted);font-size:0.7rem;">/{{ product.unit }}</small></div>
           </div>
         </a>
-
-        <!-- Yellow Habanero -->
-        <a href="#" class="product-card fade-up">
-          <span class="badge fresh">Fresh</span>
-          <div class="img-wrap">
-            <img
-            src="https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400&h=400&fit=crop&q=80"
-            alt="Yellow Habanero"
-            loading="lazy"
-            />
-          </div>
-          <div class="info">
-            <div class="name">Yellow Habanero</div>
-            <div class="variant">Citrusy · Very Hot</div>
-            <div class="price">₦1,600 <small style="font-weight:400;color:var(--text-muted);font-size:0.7rem;">/250g</small></div>
-          </div>
-        </a>
-
-        <!-- Red Bell -->
-        <a href="#" class="product-card fade-up">
-          <div class="img-wrap">
-            <img
-            src="https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400&h=400&fit=crop&q=80"
-            alt="Red Bell Pepper"
-            loading="lazy"
-            />
-          </div>
-          <div class="info">
-            <div class="name">Red Bell</div>
-            <div class="variant">Sweet · Crunchy</div>
-            <div class="price">₦1,200 <small style="font-weight:400;color:var(--text-muted);font-size:0.7rem;">/piece</small></div>
-          </div>
-        </a>
-
-        <!-- Yellow Bell -->
-        <a href="#" class="product-card fade-up">
-          <span class="badge fresh">Fresh</span>
-          <div class="img-wrap">
-            <img
-            src="https://images.unsplash.com/photo-1597362925123-77861d3fbac7?w=400&h=400&fit=crop&q=80"
-            alt="Yellow Bell Pepper"
-            loading="lazy"
-            />
-          </div>
-          <div class="info">
-            <div class="name">Yellow Bell</div>
-            <div class="variant">Mild · Juicy</div>
-            <div class="price">₦1,300 <small style="font-weight:400;color:var(--text-muted);font-size:0.7rem;">/piece</small></div>
-          </div>
-        </a>
+        {% endfor %}
+        
       </div>
     </div>
   </section>
@@ -1149,7 +1110,7 @@
         Order now and get same‑day delivery.
       </p>
       <div class="btn-group">
-        <a href="#products" class="btn-primary"><i class="fas fa-store"></i> Shop Now</a>
+        <a href="{% url 'products:shop' %}" class="btn-primary"><i class="fas fa-store"></i> Shop Now</a>
         <a href="#" class="btn-outline"><i class="fas fa-phone"></i> Contact Us</a>
       </div>
     </div>

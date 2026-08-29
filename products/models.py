@@ -138,14 +138,14 @@ class Product(models.Model):
         unique_together = ['category', 'color', 'grade', 'unit']  
     
     def __str__(self):
-        return f"{self.get_color_display()} {self.get_category_display()} ({self.grade}, {self.get_unit_display()})"
+        return f"{self.get_color_display()} {self.category.name} ({self.grade}, {self.get_unit_display()})"
     
     def save(self, *args, **kwargs):
         if not self.slug:
             # Build base slug from all attributes that make the product unique
             base_slug = slugify(
                 f"{self.get_color_display()} "
-                f"{self.get_category_display()} "
+                f"{self.category.name} "
                 f"{self.grade} "
                 f"{self.unit}"
             )

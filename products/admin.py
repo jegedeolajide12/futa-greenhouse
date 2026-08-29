@@ -185,7 +185,7 @@ class ProductAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         # If name is empty, build it from category + color
         if not obj.name:
-            obj.name = f"{obj.get_color_display()} {obj.get_category_display()}"
+            obj.name = f"{obj.get_color_display()} {obj.category.name}"
         super().save_model(request, obj, form, change)
 
 
