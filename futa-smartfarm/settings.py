@@ -176,7 +176,7 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 # https://whitenoise.readthedocs.io/en/latest/django.html
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
