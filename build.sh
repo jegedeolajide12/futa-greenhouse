@@ -11,7 +11,23 @@ python manage.py collectstatic --noinput
 python manage.py migrate --noinput
 
 # Create superuser (if it doesn't exist)
-# Create superuser from environment variable
-echo "from django.contrib.auth import get_user_model; User = get_user_model(); user, created = User.objects.get_or_create(username='Lekan', defaults={'email':'jegedeolajide1@gmail.com', 'is_superuser':True, 'is_staff':True}); if created: user.set_password('$ADMIN_PASSWORD'); user.save()" | python manage.py shell
+python manage.py shell <<EOF
+from django.contrib.auth import get_user_model
+User = get_user_model()
+user, created = User.objects.get_or_create(
+    username='Lekan',
+    defaults={
+        'email': 'jegedeolajide1@gmail.com',
+        'is_superuser': True,
+        'is_staff': True
+    }
+)
+if created:
+    user.set_password('Test@1234')
+    user.save()
+    print("Superuser created.")
+else:
+    print("Superuser already exists.")
+EOF
 
 echo "Build complete."
