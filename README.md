@@ -62,10 +62,10 @@ To use Pip, create a new virtual environment and then install all packages hoste
 
 ### Docker
 
-To use Docker with PostgreSQL as the database update the `DATABASES` section of `futa-greenhouse/settings.py` to reflect the following:
+To use Docker with PostgreSQL as the database update the `DATABASES` section of `futa-smartfarm/settings.py` to reflect the following:
 
 ```python
-# futa-greenhouse/settings.py
+# futa-smartfarm/settings.py
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
@@ -78,7 +78,7 @@ DATABASES = {
 }
 ```
 
-The `INTERNAL_IPS` configuration in `futa-greenhouse/settings.py` must be also be updated:
+The `INTERNAL_IPS` configuration in `futa-smartfarm/settings.py` must be also be updated:
 
 ```python
 # config/settings.py

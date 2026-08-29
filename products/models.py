@@ -28,7 +28,7 @@ class Category(models.Model):
 
 class Product(models.Model):
     """
-    Represents a single sellable item in the greenhouse.
+    Represents a single sellable item in the smartfarm.
     e.g., "Red Habanero Pepper" or "Yellow Bell Pepper"
     """
     

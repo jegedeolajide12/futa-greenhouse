@@ -28,4 +28,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 EXPOSE 8000
 
 # Use gunicorn on port 8000
-CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "futa-greenhouse.wsgi"]
+CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "futa-smartfarm.wsgi"]

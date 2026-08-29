@@ -78,10 +78,10 @@ MIDDLEWARE = [
 ]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#root-urlconf
-ROOT_URLCONF = "futa-greenhouse.urls"
+ROOT_URLCONF = "futa-smartfarm.urls"
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#wsgi-application
-WSGI_APPLICATION = "futa-greenhouse.wsgi.application"
+WSGI_APPLICATION = "futa-smartfarm.wsgi.application"
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#templates
 TEMPLATES = [
