@@ -11,8 +11,11 @@ from django.contrib.auth.decorators import login_required
 from datetime import timedelta
 from products.models import Order, OrderItem, Product, Category
 
+from .mixins import StaffRequiredMixin, staff_required
 
-class DashboardView(LoginRequiredMixin, TemplateView):
+
+
+class DashboardView(StaffRequiredMixin, TemplateView):
     template_name = "business_admin/dashboard.html"
 
     def get_context_data(self, **kwargs):
@@ -147,6 +150,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
 @require_POST
 @login_required
+@staff_required
 def admin_update(request):
     try:
         data = json.loads(request.body)
@@ -176,6 +180,7 @@ def admin_update(request):
         return JsonResponse({'error': str(e)}, status=400)
     
 @require_POST
+@staff_required
 @login_required
 def admin_delete_order(request):
     try:
@@ -191,6 +196,7 @@ def admin_delete_order(request):
 
 @require_POST
 @login_required
+@staff_required
 def admin_delete_product(request):
     try:
         data = json.loads(request.body)
@@ -205,7 +211,7 @@ def admin_delete_product(request):
 
 
 
-class OrdersAdminView(LoginRequiredMixin, ListView):
+class OrdersAdminView(StaffRequiredMixin, ListView):
     model = Order
     template_name = "business_admin/orders.html"
     context_object_name = "orders"
@@ -251,7 +257,8 @@ class OrdersAdminView(LoginRequiredMixin, ListView):
 
 
 
-class ProductsAdminView(LoginRequiredMixin, ListView):
+
+class ProductsAdminView(StaffRequiredMixin, ListView):
     model = Product
     template_name = "business_admin/products.html"
     context_object_name = "products"
@@ -297,6 +304,7 @@ class ProductsAdminView(LoginRequiredMixin, ListView):
 
 @require_POST
 @login_required
+@staff_required
 def admin_add_product(request):
     try:
         # Use request.POST for text fields, request.FILES for image
@@ -335,6 +343,7 @@ def admin_add_product(request):
 
 @require_POST
 @login_required
+@staff_required
 def admin_delete_product(request):
     try:
         data = json.loads(request.body)
@@ -382,6 +391,7 @@ class CustomersAdminView(LoginRequiredMixin, ListView):
 
 @require_GET
 @login_required
+@staff_required
 def customer_orders_api(request):
     email = request.GET.get('email')
     if not email:
@@ -415,7 +425,7 @@ def customer_orders_api(request):
 
 
 
-class DeliveriesAdminView(LoginRequiredMixin, ListView):
+class DeliveriesAdminView(StaffRequiredMixin, ListView):
     model = Order
     template_name = "business_admin/deliveries.html"
     context_object_name = "orders"
@@ -461,7 +471,8 @@ class DeliveriesAdminView(LoginRequiredMixin, ListView):
 
 
 
-class CategoriesAdminView(LoginRequiredMixin, ListView):
+
+class CategoriesAdminView(StaffRequiredMixin, ListView):
     model = Category
     template_name = "business_admin/categories.html"
     context_object_name = "categories"
@@ -483,6 +494,7 @@ class CategoriesAdminView(LoginRequiredMixin, ListView):
 
 @require_POST
 @login_required
+@staff_required
 def admin_add_category(request):
     try:
         data = json.loads(request.body)
@@ -497,6 +509,7 @@ def admin_add_category(request):
 
 @require_POST
 @login_required
+@staff_required
 def admin_update_category(request):
     try:
         data = json.loads(request.body)
@@ -515,6 +528,7 @@ def admin_update_category(request):
 
 @require_POST
 @login_required
+@staff_required
 def admin_delete_category(request):
     try:
         data = json.loads(request.body)
@@ -531,7 +545,8 @@ def admin_delete_category(request):
 
 
 
-class DiscountsAdminView(LoginRequiredMixin, ListView):
+
+class DiscountsAdminView(StaffRequiredMixin, ListView):
     model = Product
     template_name = "business_admin/discounts.html"
     context_object_name = "products"
@@ -565,6 +580,7 @@ class DiscountsAdminView(LoginRequiredMixin, ListView):
         return context
 
 @require_POST
+@staff_required
 @login_required
 def admin_bulk_discount(request):
     try:
