@@ -1,3 +1,4 @@
+# products/views.py
 import json
 
 from django.utils import timezone
@@ -7,8 +8,9 @@ from django.http import JsonResponse
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.templatetags.static import static
-from .models import CartItem, Order, OrderItem, Product, BulkPricing, Cart
 
+from .models import CartItem, Order, OrderItem, Product, BulkPricing, Cart
+from .utils import calculate_delivery_date
 
 def get_cart(request):
     """
@@ -124,6 +126,8 @@ def place_order(request):
         payment_method='cod',  # Cash on Delivery
         status='pending',
     )
+    order.delivery_date = calculate_delivery_date(timezone.now())  # or order.created_at
+    order.save(update_fields=['delivery_date'])
 
     for item in cart.items.select_related('product'):
         OrderItem.objects.create(
@@ -401,7 +405,9 @@ class OrdersPageView(TemplateView):
                 order_id = f"ORD-{order.id:04d}"
 
                 # Delivery estimate (example: 3 days after order)
-                delivery_date = (order.created_at + timezone.timedelta(days=3)).strftime('%Y-%m-%d')
+                delivery_date_local = timezone.localtime(order.delivery_date)
+                formatted_date = delivery_date_local.strftime('%Y-%m-%d')
+                time_window = "8:00 AM – 5:00 PM"
 
                 order_data.append({
                     'id': order_id,
@@ -410,9 +416,10 @@ class OrdersPageView(TemplateView):
                     'statusLabel': order.get_status_display(),
                     'items': items,
                     'total': float(order.total),
-                    'deliveryDate': delivery_date,
                     'deliveryTime': '10:00 AM - 2:00 PM',  # placeholder
                     'deliveryAddress': order.address,
+                    'deliveryDate': formatted_date,
+                    'deliveryTime': time_window,
                 })
 
             context['orders_data'] = order_data

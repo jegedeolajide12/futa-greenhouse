@@ -1,3 +1,4 @@
+# products/models.py
 from django.db import models
 from django.utils.text import slugify
 from django.urls import reverse
@@ -218,7 +219,8 @@ class Order(models.Model):
     delivery_notes = models.TextField(blank=True)
 
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=500.00)
+    delivery_fee = models.DecimalField(max_digits=10, decimal_places=2, default=50.00)
+    delivery_date = models.DateTimeField(null=True, blank=True, help_text="Scheduled delivery date (start of window)")
     total = models.DecimalField(max_digits=10, decimal_places=2)
 
     payment_method = models.CharField(max_length=20, choices=[
