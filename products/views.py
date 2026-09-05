@@ -106,7 +106,7 @@ def place_order(request):
         return JsonResponse({'error': 'Cart is empty'}, status=400)
 
     subtotal = cart.get_total()
-    delivery_fee = 500
+    delivery_fee = 50
     total = subtotal + delivery_fee
 
     order = Order.objects.create(
