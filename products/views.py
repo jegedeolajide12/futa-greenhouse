@@ -11,6 +11,7 @@ from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.templatetags.static import static
 from django.db import models
+from django.urls import reverse
 
 from .models import CartItem, Order, OrderItem, Product, BulkPricing, Cart, Notification
 from .utils import calculate_delivery_window
@@ -133,6 +134,17 @@ def place_order(request):
     order.delivery_date = delivery_start   # store the start
     order.save(update_fields=['delivery_date'])
 
+
+    if request.user.is_authenticated:
+        Notification.objects.create(
+            user=None,
+            is_admin=True,
+            title=f"New Order #{order.id}",
+            message=f"Order #{order.id} placed by {order.full_name} (₦{order.total})",
+            link=reverse('business_admin:orders'),
+            is_read=False
+        )
+
     for item in cart.items.select_related('product'):
         OrderItem.objects.create(
             order=order,
@@ -144,13 +156,6 @@ def place_order(request):
         )
 
     cart.items.all().delete()  # Clear cart
-
-    Notification.objects.create(
-        user=request.user if request.user.is_authenticated else None,
-        title="Order Placed",
-        message=f"Your order {order.id} has been placed successfully. Total: ${total:.2f}. You will pay on delivery.",
-        is_read=False,
-    )
 
     return JsonResponse({
         'success': True,

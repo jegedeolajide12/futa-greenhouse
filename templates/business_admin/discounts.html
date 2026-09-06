@@ -1,17 +1,8 @@
 {% extends "admin_base.html" %}
 {% block title %}FUTA.SmartFarm - Discounts Management{% endblock %}
 {% load static %}
-
+{% block breadcrumb %}Discounts{% endblock %}
 {% block content %}
-<main class="main-content">
-    <header class="topbar">
-        <div class="page-title">
-            <button class="hamburger-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-            <h1>Discounts</h1>
-            <p>Manage product discounts and promotions</p>
-        </div>
-        
-    </header>
 
     <!-- Filter Bar -->
     <div class="filter-bar">
@@ -122,7 +113,6 @@
             {% endif %}
         </div>
     </div>
-</main>
 
 <!-- ========================== -->
 <!-- EDIT DISCOUNT MODAL -->

@@ -1,3 +1,4 @@
+/* admin.css */
 /* ---------- RESET & VARIABLES ---------- */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body { overflow-x: hidden; max-width: 100vw; }
@@ -150,11 +151,18 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
     gap: 1rem;
     padding-bottom: 1.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.04);
     margin-bottom: 2rem;
+}
+
+.topbar .page-title {
+    flex: 1 1 auto;
+    min-width: 0;          /* Allows the title to shrink */
+    overflow: hidden;
 }
 .topbar .page-title h1 {
     font-family: 'Fraunces', serif;
@@ -170,14 +178,54 @@ body {
     align-items: center;
     gap: 1rem;
 }
+/* Position the notification icon as a relative container */
 .topbar .topbar-actions .notification {
     position: relative;
-    font-size: 1.2rem;
-    color: var(--text-muted);
     cursor: pointer;
-    transition: var(--transition);
+    display: inline-block;
 }
-.topbar .topbar-actions .notification:hover { color: var(--text-light); }
+
+/* Style the dropdown */
+.notification-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);  /* adds a small gap under the bell */
+    width: 320px;
+    background: var(--bg-card);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+    padding: 0.5rem 0;
+    z-index: 1000;
+    display: none;  /* hidden by default, shown via JS */
+}
+
+/* Badge on the bell icon – positioned relative to .notification */
+.topbar .topbar-actions .notification .badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background: var(--accent-red);
+    color: #fff;
+    font-size: 0.6rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 50%;
+}
+
+/* Dropdown items */
+.notification-dropdown .notification-item {
+    display: block;
+    padding: 0.6rem 1rem;
+    color: var(--text-light);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+.notification-dropdown .notification-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+.notification-dropdown .notification-item:last-child {
+    border-bottom: none;
+}
 .topbar .topbar-actions .notification .dot {
     position: absolute;
     top: -4px;
@@ -225,6 +273,27 @@ body {
     color: var(--text-light);
     background: none;
     border: none;
+}
+
+@media (max-width: 768px) {
+    .topbar {
+        gap: 0.5rem;
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    .topbar .page-title h1 {
+        font-size: 1.2rem;
+    }
+    .topbar .page-title p {
+        display: none;           /* hide subtitle on small screens */
+    }
+    .topbar .topbar-actions .admin-profile .name {
+        display: none;
+    }
+    .topbar .topbar-actions .notification-dropdown {
+        width: 280px;
+        right: -10px;
+    }
 }
 
 /* ---------- STATS CARDS ---------- */

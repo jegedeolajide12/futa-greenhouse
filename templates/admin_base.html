@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- admin_base.html -->
 {% load static %}
 <html lang="en">
 <head>
@@ -93,11 +94,65 @@
 
     <!-- Sidebar Overlay (mobile) -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-        {% block content %}
 
-        {% endblock %}
+        <!-- ========================== -->
+        <!-- MAIN CONTENT -->
+        <!-- ========================== -->
+        <main class="main-content">
+
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="page-title">
+                    <button class="hamburger-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1>{% block breadcrumb %} {% endblock %}</h1>
+                    <p>Welcome back, Admin! Here's what's happening today.</p>
+                </div>
+                <div class="topbar-actions">
+                    <span class="notification">
+                        <i class="fas fa-bell"></i>
+                        {% if admin_notifications_count > 0 %}
+                            <span class="badge" style="background: var(--accent-red); color: #fff; font-size: 0.6rem; padding: 0.1rem 0.5rem; border-radius: 50%; position: absolute; top: -6px; right: -8px;">
+                                {{ admin_notifications_count }}
+                            </span>
+                        {% endif %}
+                        <div class="notification-dropdown" id="adminNotifDropdown" style="display: none; position: absolute; right: 0; top: 100%; width: 320px; background: var(--bg-card); border: 1px solid rgba(255,255,255,0.06); border-radius: var(--radius); box-shadow: 0 20px 60px rgba(0,0,0,0.8); padding: 0.5rem 0; z-index: 1000;">
+                            {% for notif in admin_notifications %}
+                                <a href="{{ notif.link }}" class="notification-item" style="display: block; padding: 0.6rem 1rem; color: var(--text-light); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                    <strong>{{ notif.title }}</strong>
+                                    <div style="font-size: 0.85rem; color: var(--text-muted);">{{ notif.message|truncatechars:60 }}</div>
+                                    <div style="font-size: 0.7rem; color: var(--text-muted);">{{ notif.created_at|timesince }} ago</div>
+                                </a>
+                            {% empty %}
+                                <div style="padding: 1rem; color: var(--text-muted);">No new notifications</div>
+                            {% endfor %}
+                            <a href="{% url 'business_admin:orders' %}" style="display: block; padding: 0.5rem 1rem; text-align: center; color: var(--accent-amber); text-decoration: none; font-weight: 600;">View all orders</a>
+                        </div>
+                    </span>
+                    
+                    <div class="admin-profile">
+                        <span class="avatar">A</span>
+                        <span class="name">Admin</span>
+                    </div>
+                </div>
+            </header>
+            {% block content %}
+
+            {% endblock %}
+        </main>
     </div>
     
     <script src="{% static "js/admin/admin.js" %}"></script>
+    <script>
+        document.querySelector('.notification').addEventListener('click', function(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('adminNotifDropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        });
+        document.addEventListener('click', function() {
+            document.getElementById('adminNotifDropdown').style.display = 'none';
+        });
+    </script>
 </body>
 </html>

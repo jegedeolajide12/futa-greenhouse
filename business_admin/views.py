@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST, require_GET
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required
 from datetime import timedelta
-from products.models import Order, OrderItem, Product, Category
+from products.models import Order, OrderItem, Product, Category, Notification
 
 from .mixins import StaffRequiredMixin, staff_required
 
@@ -145,6 +145,12 @@ class DashboardView(StaffRequiredMixin, TemplateView):
             'status_data': status_data,
         })
 
+
+        # Admin notifications
+        admin_notifs = Notification.objects.filter(is_admin=True, is_read=False)
+        context['admin_notifications_count'] = admin_notifs.count()
+        context['admin_notifications'] = admin_notifs.order_by('-created_at')[:5]  # latest 5
+
         return context
 
 
@@ -159,8 +165,27 @@ def admin_update(request):
 
         if obj_type == 'order':
             obj = Order.objects.get(id=obj_id)
-            obj.status = data.get('status')
-            obj.save()
+            old_status = obj.status
+            new_status = data.get('status')
+
+            # Update the status if it changed
+            if old_status != new_status:
+                obj.status = new_status
+                obj.save()
+
+                # Notify the user (if the order belongs to a registered user)
+                if obj.user:
+                    Notification.objects.create(
+                        user=obj.user,
+                        title=f"Order #{obj.id} Status Updated",
+                        message=f"Your order status has changed from **{obj.get_status_display()}** to **{dict(Order.STATUS_CHOICES).get(new_status, new_status)}**.",
+                        link=reverse('products:orders'),
+                        is_read=False
+                    )
+            else:
+                # If only other fields changed (e.g., notes) – but we only handle status here
+                obj.save()
+
         elif obj_type == 'product':
             obj = Product.objects.get(id=obj_id)
             if 'price' in data:
@@ -172,6 +197,7 @@ def admin_update(request):
             if 'discount_price' in data:
                 obj.discount_price = data['discount_price'] if data['discount_price'] else None
             obj.save()
+
         else:
             return JsonResponse({'error': 'Invalid type'}, status=400)
 

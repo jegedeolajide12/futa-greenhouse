@@ -1,19 +1,10 @@
 {% extends "admin_base.html" %}
+<!-- business_admin/orders.html -->
 {% block title %}FUTA.SmartFarm - Orders Management{% endblock %}
 {% load static %}
+{% block breadcrumb %}Orders{% endblock %}
 
 {% block content %}
-<main class="main-content">
-    <header class="topbar">
-        <div class="page-title">
-            <button class="hamburger-toggle" onclick="toggleSidebar()">
-                <i class="fas fa-bars"></i>
-            </button>
-            <h1>Orders</h1>
-            <p>Manage all customer orders</p>
-        </div>
-        
-    </header>
 
     <!-- Filter Form -->
     <div class="filter-bar">
@@ -119,7 +110,6 @@
             {% endif %}
         </div>
     </div>
-</main>
 
 <!-- Include the edit modal (same as dashboard) -->
 {% include "business_admin/_edit_modal.html" %}

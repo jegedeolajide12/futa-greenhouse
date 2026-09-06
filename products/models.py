@@ -416,11 +416,12 @@ class Notification(models.Model):
         related_name='notifications',
         help_text="If null, notification is global (visible to all)."
     )
-    
+
     title = models.CharField(max_length=100)
     message = models.TextField()
     link = models.URLField(blank=True, null=True, help_text="Optional URL to link the notification to.")
     is_read = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
