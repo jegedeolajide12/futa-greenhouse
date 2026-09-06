@@ -423,7 +423,7 @@ def admin_update(request):
                     Notification.objects.create(
                         user=obj.user,
                         title=f"Order #{obj.id} Status Updated",
-                        message=f"Your order status has changed from **{obj.get_status_display()}** to **{dict(Order.STATUS_CHOICES).get(new_status, new_status)}**.",
+                        message=f"Your order status has been {dict(Order.STATUS_CHOICES).get(new_status, new_status)}.",
                         link=reverse('products:orders'),
                         is_read=False
                     )
