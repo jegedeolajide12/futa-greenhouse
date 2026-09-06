@@ -405,3 +405,30 @@ class BulkPricing(models.Model):
         if self.single_crate_price and self.two_to_five_crate_price:
             return int(((self.single_crate_price - self.two_to_five_crate_price) / self.single_crate_price) * 100)
         return 0
+
+class Notification(models.Model):
+    """System notification for users."""
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notifications',
+        help_text="If null, notification is global (visible to all)."
+    )
+    
+    title = models.CharField(max_length=100)
+    message = models.TextField()
+    link = models.URLField(blank=True, null=True, help_text="Optional URL to link the notification to.")
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'is_read']),
+            models.Index(fields=['-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.title} - {self.user or 'Global'}"

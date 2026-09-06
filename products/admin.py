@@ -4,7 +4,7 @@ from django.contrib.admin import SimpleListFilter
 from django.shortcuts import redirect
 from django.urls import reverse
 
-from .models import OrderItem, Product, ProductImage, BulkPricing, Order, Cart, CartItem
+from .models import Notification, OrderItem, Product, ProductImage, BulkPricing, Order, Cart, CartItem
 
 
 class ProductImageInline(admin.TabularInline):
@@ -242,3 +242,12 @@ class OrderAdmin(admin.ModelAdmin):
 
 admin.site.register(Cart)
 admin.site.register(CartItem)
+
+
+@admin.register(Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('title', 'user', 'is_read', 'created_at')
+    list_filter = ('is_read', 'created_at', 'user')
+    search_fields = ('title', 'message')
+    readonly_fields = ('created_at',)
+    fields = ('user', 'title', 'message', 'link', 'is_read', 'created_at')

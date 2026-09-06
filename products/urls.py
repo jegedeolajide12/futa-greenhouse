@@ -1,8 +1,9 @@
 from django.urls import path
 
 from .views import (
-    OrdersPageView, ShopPageView, HarvestPageView, BulkOrderPageView, ProductDetailPageView,  CartPageView, CheckoutPageView, 
-    cart_add, cart_items, cart_remove, cart_update, place_order
+    NotificationsPageView, OrdersPageView, ShopPageView, HarvestPageView, BulkOrderPageView, 
+    ProductDetailPageView,  CartPageView, CheckoutPageView, 
+    cart_add, cart_items, cart_remove, cart_update, place_order, mark_all_notifications_read
 )
 
 app_name = "products"
@@ -15,10 +16,12 @@ urlpatterns = [
     path("cart/", CartPageView.as_view(), name="cart"),
     path("checkout/", CheckoutPageView.as_view(), name="checkout"),
     path("orders/", OrdersPageView.as_view(), name="orders"),
+    path('notifications/', NotificationsPageView.as_view(), name='notifications'),
     # Cart API endpoints
     path('cart/add/', cart_add, name='cart_add'),
     path('cart/items/', cart_items, name='cart_items'),
     path('cart/remove/', cart_remove, name='cart_remove'),
     path('cart/update/', cart_update, name='cart_update'),
     path('checkout/place-order/', place_order, name='place_order'),
+    path('notifications/mark-all-read/', mark_all_notifications_read, name='mark_all_notifications_read'),
 ]

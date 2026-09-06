@@ -10,8 +10,9 @@ from django.http import JsonResponse
 from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.templatetags.static import static
+from django.db import models
 
-from .models import CartItem, Order, OrderItem, Product, BulkPricing, Cart
+from .models import CartItem, Order, OrderItem, Product, BulkPricing, Cart, Notification
 from .utils import calculate_delivery_window
 
 def get_cart(request):
@@ -143,6 +144,13 @@ def place_order(request):
         )
 
     cart.items.all().delete()  # Clear cart
+
+    Notification.objects.create(
+        user=request.user if request.user.is_authenticated else None,
+        title="Order Placed",
+        message=f"Your order {order.id} has been placed successfully. Total: ${total:.2f}. You will pay on delivery.",
+        is_read=False,
+    )
 
     return JsonResponse({
         'success': True,
@@ -431,3 +439,32 @@ class OrdersPageView(TemplateView):
             context['orders_data'] = []   # empty for anonymous
 
         return context
+
+
+class NotificationsPageView(TemplateView):
+    template_name = "products/notifications.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+
+        if user.is_authenticated:
+            # Get user-specific notifications + global ones (user=None)
+            notifications = Notification.objects.filter(
+                models.Q(user=user) | models.Q(user=None)
+            ).order_by('-created_at')
+        else:
+            # For anonymous, show only global notifications
+            notifications = Notification.objects.filter(user=None).order_by('-created_at')
+
+        context['notifications'] = notifications
+        return context
+
+
+@require_POST
+def mark_all_notifications_read(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Not authenticated'}, status=403)
+    # Mark all unread notifications for this user as read
+    updated = Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+    return JsonResponse({'success': True, 'marked_count': updated})

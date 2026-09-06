@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- _base.html -->
 {% load static %}
 <html lang="en">
 <head>
@@ -25,15 +26,20 @@
                 <li><a href="{% url 'products:shop' %}" class="{% if request.resolver_match.url_name == 'shop' %}active{% endif %}">
                     <i class="fas fa-store"></i> Shop
                 </a></li>
-                <li><a href="{% url 'products:bulk_order' %}" class="{% if request.resolver_match.url_name == 'bulk_order' %}active{% endif %}">
-                    <i class="fas fa-box"></i> Bulk
-                </a></li>
                 <li class="hide-cart"><a href="{% url 'products:cart' %}" class="{% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
                     <i class="fas fa-shopping-bag"></i> Cart
                 </a></li>
                 <li><a href="{% url 'products:orders' %}" class="{% if request.resolver_match.url_name == 'orders' %}active{% endif %}">
                     <i class="fas fa-list"></i> Orders
                 </a></li>
+                <a href="{% url 'products:notifications' %}">
+                    <i class="fas fa-bell"></i> Notifications
+                    {% if unread_notification_count > 0 %}
+                        <span class="badge-notification" id="unread-badge">{{ unread_notification_count }}</span>
+                    {% else %}
+                        <span class="badge-notification" id="unread-badge" style="display:none;">0</span>
+                    {% endif %}
+                </a>
 
                 <li class="cart-icon" id="cartToggle">
                     <a href="{% url 'products:cart' %}" class="cart-link">

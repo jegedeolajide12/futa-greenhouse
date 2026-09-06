@@ -1,0 +1,104 @@
+<!-- products/notifications.html -->
+{% extends "_base.html" %}
+{% load static %}
+{% block title %}Notifications - FUTA SmartFarm{% endblock %}
+
+{% block content %}
+<main class="container">
+
+    <!-- BREADCRUMB -->
+    <div class="breadcrumb">
+        <a href="{% url 'home' %}">Home</a>
+        <span class="separator"><i class="fas fa-chevron-right"></i></span>
+        <span class="current">Notifications</span>
+    </div>
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <h1><i class="fas fa-bell" style="color: var(--accent-amber);"></i> Notifications</h1>
+        <span class="order-count" id="notifCount">{{ notifications|length }} notifications</span>
+    </div>
+
+    <!-- NOTIFICATIONS LIST -->
+    <div class="notifications-list" id="notifList">
+        {% if notifications %}
+            {% for notif in notifications %}
+                <div class="notification-card {% if not notif.is_read %}unread{% endif %}" data-id="{{ notif.id }}">
+                    <div class="notification-header">
+                        <span class="notification-title">{{ notif.title }}</span>
+                        <span class="notification-date">{{ notif.created_at|date:"Y-m-d H:i" }}</span>
+                    </div>
+                    <div class="notification-body">
+                        {{ notif.message }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-bell-slash"></i>
+                <h2>No notifications yet</h2>
+                <p>We'll let you know when there's something new.</p>
+            </div>
+        {% endif %}
+    </div>
+
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Check if there are any unread notifications
+        const unreadCards = document.querySelectorAll('.notification-card.unread');
+        if (unreadCards.length === 0) return; // nothing to mark
+
+        // Wait 2 seconds then mark all as read
+        setTimeout(function() {
+            // Get CSRF token
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || getCSRFToken();
+
+            fetch("{% url 'products:mark_all_notifications_read' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Remove unread class from all cards
+                    unreadCards.forEach(card => card.classList.remove('unread'));
+
+                    // Update the badge in the navbar (if exists)
+                    const badge = document.getElementById('unread-badge');
+                    if (badge) {
+                        badge.textContent = '0';
+                        badge.style.display = 'none'; // hide if zero
+                    }
+
+                    // Update the total count in page header (optional)
+                    const countSpan = document.getElementById('notifCount');
+                    if (countSpan) {
+                        const total = document.querySelectorAll('.notification-card').length;
+                        countSpan.textContent = total + ' notifications';
+                    }
+                }
+            })
+            .catch(err => console.error('Error marking all as read:', err));
+        }, 2000); // 2 seconds delay
+    });
+
+    // Helper to get CSRF token from cookies (used if no meta tag)
+    function getCSRFToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [key, value] = cookie.trim().split('=');
+            if (key === name) return value;
+        }
+        return '';
+    }
+</script>
+{% endblock %}
