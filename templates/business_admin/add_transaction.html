@@ -1,0 +1,27 @@
+<!-- business_admin/add_transaction.html -->
+{% extends "admin_base.html" %}
+{% block breadcrumb %}Add Transaction{% endblock %}
+
+{% block content %}
+<div class="table-card" style="max-width: 600px; margin: 0 auto;">
+    <div class="table-header">
+        <h3><i class="fas fa-plus-circle" style="color: var(--accent-amber);"></i> Add Transaction</h3>
+    </div>
+    <form method="post" style="padding: 1rem 0;">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <div style="color: var(--accent-red); font-size: 0.8rem;">{{ field.errors }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+            <button type="submit" class="btn-primary"><i class="fas fa-save"></i> Save</button>
+            <a href="{% url 'business_admin:transactions' %}" class="btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

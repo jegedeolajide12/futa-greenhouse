@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Transactions Report</title>
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm;
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            background: #0B170B;
+            color: #EEF6EE;
+        }
+        .report-header {
+            background: #152615;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #F59E0B;
+        }
+        .report-header h1 {
+            font-family: 'Fraunces', serif;
+            font-size: 2rem;
+            margin: 0;
+            color: #F59E0B;
+        }
+        .report-header p {
+            color: #8DA68D;
+            margin: 0.2rem 0 0;
+        }
+        .summary-box {
+            background: #152615;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .summary-box .item {
+            text-align: center;
+        }
+        .summary-box .item .label {
+            color: #8DA68D;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .summary-box .item .value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #F59E0B;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #152615;
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 0.85rem;
+        }
+        th {
+            background: #1E341E;
+            color: #F59E0B;
+            padding: 0.7rem 0.5rem;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        td {
+            padding: 0.6rem 0.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .status-badge.pending { background: rgba(245,158,11,0.15); color: #F59E0B; }
+        .status-badge.success { background: rgba(52,211,153,0.15); color: #34D399; }
+        .status-badge.failed { background: rgba(239,68,68,0.15); color: #EF4444; }
+        .status-badge.refunded { background: rgba(139,92,246,0.15); color: #8B5CF6; }
+        .footer {
+            margin-top: 1.5rem;
+            text-align: center;
+            color: #8DA68D;
+            font-size: 0.75rem;
+            border-top: 1px solid rgba(255,255,255,0.04);
+            padding-top: 1rem;
+        }
+        .amount {
+            font-weight: 600;
+            color: #F59E0B;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="report-header">
+        <h1>Transaction Report</h1>
+        <p>Generated on {{ generated_at|date:"Y-m-d H:i" }} &bull; {{ total_count }} transactions</p>
+    </div>
+
+    <div class="summary-box">
+        <div class="item">
+            <div class="label">Total Transactions</div>
+            <div class="value">{{ total_count }}</div>
+        </div>
+        <div class="item">
+            <div class="label">Total Amount</div>
+            <div class="value">₦{{ total_amount|floatformat:"0" }}</div>
+        </div>
+        <div class="item">
+            <div class="label">Date Range</div>
+            <div class="value" style="font-size:1rem; color:#EEF6EE;">
+                {% if request.GET.date_from and request.GET.date_to %}
+                    {{ request.GET.date_from }} – {{ request.GET.date_to }}
+                {% else %}
+                    All time
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Transaction ID</th>
+                <th>Payer</th>
+                <th>Session</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Method</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr>
+                <td><strong>{{ t.transaction_id }}</strong></td>
+                <td>{{ t.payer_name|default:"Anonymous" }}</td>
+                <td>{{ t.session_id|default:"—" }}</td>
+                <td class="amount">₦{{ t.amount|floatformat:"0" }}</td>
+                <td><span class="status-badge {{ t.status }}">{{ t.get_status_display }}</span></td>
+                <td>{{ t.get_payment_method_display }}</td>
+                <td>{{ t.created_at|date:"Y-m-d H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" style="text-align:center; padding:1.5rem; color:#8DA68D;">No transactions found for the selected filters.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        FUTA SmartFarm &bull; Admin Dashboard &bull; {{ generated_at|date:"Y-m-d H:i" }}
+    </div>
+
+</body>
+</html>

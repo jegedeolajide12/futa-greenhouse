@@ -640,6 +640,18 @@ body {
     }
 }
 
+.admin-table .status-badge.success {
+    background: rgba(52, 211, 153, 0.15);
+    color: var(--accent-emerald);
+}
+.admin-table .status-badge.failed {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--accent-red);
+}
+.admin-table .status-badge.refunded {
+    background: rgba(139, 92, 246, 0.15);
+    color: var(--accent-purple);
+}
 
 /* ---------- MODAL ---------- */
 .modal-overlay {

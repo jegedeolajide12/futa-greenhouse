@@ -59,6 +59,9 @@
             <a href="{% url 'business_admin:discounts' %}" class="{% if request.resolver_match.url_name == 'discounts' %}active{% endif %}">
                 <i class="fas fa-tags"></i> Discounts
             </a>
+            <a href="{% url 'business_admin:transactions' %}" class="{% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
+                <i class="fas fa-credit-card"></i> Transactions
+            </a>
         </nav>
 
         <div class="sidebar-footer">

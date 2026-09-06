@@ -1,9 +1,10 @@
 from django.urls import path
 
 from .views import (
-    CategoriesAdminView, DashboardView, DeliveriesAdminView, DiscountsAdminView, OrdersAdminView, ProductsAdminView, admin_add_category, 
+    CategoriesAdminView, DashboardView, DeliveriesAdminView, DiscountsAdminView, OrdersAdminView, ProductsAdminView, add_transaction_api, admin_add_category, 
     admin_add_product, admin_bulk_discount, admin_delete_category, admin_delete_order, 
-    admin_delete_product, admin_update, admin_update_category, customer_orders_api, CustomersAdminView, mark_admin_notifications_read, pending_orders_count_api
+    admin_delete_product, admin_update, admin_update_category, customer_orders_api, delete_transaction_api, edit_transaction_api, 
+    TransactionsAdminView, CustomersAdminView, export_transactions_pdf, mark_admin_notifications_read, pending_orders_count_api
 )
 
 app_name = "business_admin"
@@ -16,6 +17,9 @@ urlpatterns = [
     path('deliveries/', DeliveriesAdminView.as_view(), name='deliveries'),
     path('categories/', CategoriesAdminView.as_view(), name='categories'),
     path('discounts/', DiscountsAdminView.as_view(), name='discounts'),
+    path('transactions/', TransactionsAdminView.as_view(), name='transactions'),
+    path('transactions/api/add/', add_transaction_api, name='add_transaction_api'),
+    path('transactions/export-pdf/', export_transactions_pdf, name='export_transactions_pdf'),
 
 
     # API endpoint for updating order/product details
@@ -33,5 +37,7 @@ urlpatterns = [
 
     path('api/mark-admin-notifications-read/', mark_admin_notifications_read, name='mark_admin_notifications_read'),
     path('api/pending-orders-count/', pending_orders_count_api, name='pending_orders_count_api'),
+    path('transactions/api/delete/', delete_transaction_api, name='delete_transaction_api'),
+    path('transactions/api/edit/', edit_transaction_api, name='edit_transaction_api'),
 
 ]

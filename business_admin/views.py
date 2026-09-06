@@ -1,9 +1,13 @@
-from decimal import Decimal
-from django.urls import reverse
 import json
-from django.http import JsonResponse
+import csv
+
+
+from decimal import Decimal
+from django.urls import reverse, reverse_lazy
+
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
-from django.views.generic import TemplateView, ListView
+from django.views.generic import TemplateView, ListView, CreateView
 from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
 from django.views.decorators.http import require_POST, require_GET
@@ -13,6 +17,12 @@ from datetime import timedelta
 from products.models import Order, OrderItem, Product, Category, Notification
 
 from .mixins import StaffRequiredMixin, staff_required
+from .models import Transaction
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+
 
 
 @require_POST
@@ -30,6 +40,224 @@ def mark_admin_notifications_read(request):
 def pending_orders_count_api(request):
     count = Order.objects.filter(status='pending').count()
     return JsonResponse({'count': count})
+
+
+
+
+
+
+class TransactionsAdminView(StaffRequiredMixin, LoginRequiredMixin, ListView):
+    model = Transaction
+    template_name = "business_admin/transactions.html"
+    context_object_name = "transactions"
+    paginate_by = 20
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # Filters
+        search = self.request.GET.get('search', '')
+        if search:
+            qs = qs.filter(
+                Q(transaction_id__icontains=search) |
+                Q(session_id__icontains=search) |
+                Q(description__icontains=search) |
+                Q(user__username__icontains=search) |
+                Q(user__email__icontains=search)
+            )
+        status = self.request.GET.get('status', '')
+        if status:
+            qs = qs.filter(status=status)
+        method = self.request.GET.get('payment_method', '')
+        if method:
+            qs = qs.filter(payment_method=method)
+        date_from = self.request.GET.get('date_from', '')
+        if date_from:
+            qs = qs.filter(created_at__date__gte=date_from)
+        date_to = self.request.GET.get('date_to', '')
+        if date_to:
+            qs = qs.filter(created_at__date__lte=date_to)
+        amount_min = self.request.GET.get('amount_min', '')
+        if amount_min:
+            qs = qs.filter(amount__gte=amount_min)
+        amount_max = self.request.GET.get('amount_max', '')
+        if amount_max:
+            qs = qs.filter(amount__lte=amount_max)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_filters'] = {
+            'search': self.request.GET.get('search', ''),
+            'status': self.request.GET.get('status', ''),
+            'payment_method': self.request.GET.get('payment_method', ''),
+            'date_from': self.request.GET.get('date_from', ''),
+            'date_to': self.request.GET.get('date_to', ''),
+            'amount_min': self.request.GET.get('amount_min', ''),
+            'amount_max': self.request.GET.get('amount_max', ''),
+        }
+        context['status_choices'] = Transaction.STATUS_CHOICES
+        context['payment_choices'] = Transaction.PAYMENT_METHODS
+        # Summary totals
+        qs = self.get_queryset()
+        context['total_amount'] = qs.aggregate(Sum('amount'))['amount__sum'] or 0
+        context['total_count'] = qs.count()
+        return context
+
+
+from xhtml2pdf import pisa
+from django.template.loader import get_template
+from io import BytesIO
+
+@login_required
+@staff_required
+def export_transactions_pdf(request):
+    # Rebuild the queryset with the same filters
+    qs = Transaction.objects.all()
+    search = request.GET.get('search', '')
+    if search:
+        qs = qs.filter(
+            Q(transaction_id__icontains=search) |
+            Q(payer_name__icontains=search) |
+            Q(session_id__icontains=search) |
+            Q(description__icontains=search)
+        )
+    status = request.GET.get('status', '')
+    if status:
+        qs = qs.filter(status=status)
+    method = request.GET.get('payment_method', '')
+    if method:
+        qs = qs.filter(payment_method=method)
+    date_from = request.GET.get('date_from', '')
+    if date_from:
+        qs = qs.filter(created_at__date__gte=date_from)
+    date_to = request.GET.get('date_to', '')
+    if date_to:
+        qs = qs.filter(created_at__date__lte=date_to)
+    amount_min = request.GET.get('amount_min', '')
+    if amount_min:
+        qs = qs.filter(amount__gte=amount_min)
+    amount_max = request.GET.get('amount_max', '')
+    if amount_max:
+        qs = qs.filter(amount__lte=amount_max)
+
+    total_amount = qs.aggregate(Sum('amount'))['amount__sum'] or 0
+
+    context = {
+        'transactions': qs,
+        'total_amount': total_amount,
+        'total_count': qs.count(),
+        'generated_at': timezone.now(),
+        'filters': request.GET.urlencode(),
+    }
+
+    template = get_template('business_admin/transactions_pdf.html')
+    html = template.render(context)
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="transactions.pdf"'
+
+    # Create PDF
+    pisa_status = pisa.CreatePDF(
+        html,
+        dest=response,
+        encoding='UTF-8',
+        link_callback=None,  # could add for static files
+    )
+    if pisa_status.err:
+        return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+
+@require_POST
+@login_required
+@staff_required
+def add_transaction_api(request):
+    try:
+        data = json.loads(request.body)
+        transaction_id = data.get('transaction_id', '').strip()
+        if not transaction_id:
+            return JsonResponse({'error': 'Transaction ID is required'}, status=400)
+
+        payer_name = data.get('payer_name', '').strip()
+        session_id = data.get('session_id', '').strip()
+        amount = data.get('amount')
+        status = data.get('status', 'pending')
+        payment_method = data.get('payment_method', 'cash')
+        description = data.get('description', '').strip()
+
+        if not amount:
+            return JsonResponse({'error': 'Amount is required'}, status=400)
+
+        # Find user if identifier provided
+        
+
+        transaction = Transaction.objects.create(
+            payer_name=payer_name,
+            transaction_id=transaction_id,
+            session_id=session_id,
+            amount=amount,
+            status=status,
+            payment_method=payment_method,
+            description=description,
+        )
+        return JsonResponse({'success': True, 'transaction_id': transaction.transaction_id})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+
+@require_POST
+@login_required
+@staff_required
+def delete_transaction_api(request):
+    try:
+        data = json.loads(request.body)
+        transaction_id = data.get('transaction_id')
+        if not transaction_id:
+            return JsonResponse({'error': 'Transaction ID is required'}, status=400)
+        transaction = Transaction.objects.get(transaction_id=transaction_id)
+        transaction.delete()
+        return JsonResponse({'success': True})
+    except Transaction.DoesNotExist:
+        return JsonResponse({'error': 'Transaction not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
+@require_POST
+@login_required
+@staff_required
+def edit_transaction_api(request):
+    try:
+        data = json.loads(request.body)
+        transaction_id = data.get('transaction_id')
+        if not transaction_id:
+            return JsonResponse({'error': 'Transaction ID is required'}, status=400)
+
+        transaction = Transaction.objects.get(transaction_id=transaction_id)
+
+        # Update fields
+        if 'payer_name' in data:
+            transaction.payer_name = data['payer_name'].strip()
+        if 'session_id' in data:
+            transaction.session_id = data['session_id'].strip()
+        if 'amount' in data:
+            transaction.amount = data['amount']
+        if 'status' in data:
+            transaction.status = data['status']
+        if 'payment_method' in data:
+            transaction.payment_method = data['payment_method']
+        if 'description' in data:
+            transaction.description = data['description'].strip()
+
+        transaction.save()
+        return JsonResponse({'success': True, 'transaction_id': transaction.transaction_id})
+    except Transaction.DoesNotExist:
+        return JsonResponse({'error': 'Transaction not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
 
 
 class DashboardView(StaffRequiredMixin, TemplateView):
