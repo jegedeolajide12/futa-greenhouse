@@ -1,6 +1,8 @@
 # products/views.py
 import json
 
+from datetime import timedelta
+
 from django.utils import timezone
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST, require_GET
@@ -10,7 +12,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.templatetags.static import static
 
 from .models import CartItem, Order, OrderItem, Product, BulkPricing, Cart
-from .utils import calculate_delivery_date
+from .utils import calculate_delivery_window
 
 def get_cart(request):
     """
@@ -126,7 +128,8 @@ def place_order(request):
         payment_method='cod',  # Cash on Delivery
         status='pending',
     )
-    order.delivery_date = calculate_delivery_date(timezone.now())  # or order.created_at
+    delivery_start, delivery_end = calculate_delivery_window(timezone.now())
+    order.delivery_date = delivery_start   # store the start
     order.save(update_fields=['delivery_date'])
 
     for item in cart.items.select_related('product'):
@@ -405,9 +408,10 @@ class OrdersPageView(TemplateView):
                 order_id = f"ORD-{order.id:04d}"
 
                 # Delivery estimate (example: 3 days after order)
-                delivery_date_local = timezone.localtime(order.delivery_date)
-                formatted_date = delivery_date_local.strftime('%Y-%m-%d')
-                time_window = "8:00 AM – 5:00 PM"
+                delivery_start = order.delivery_date
+                delivery_end = delivery_start + timedelta(hours=2)
+                formatted_start = delivery_start.strftime('%Y-%m-%d %I:%M %p')
+                formatted_end = delivery_end.strftime('%I:%M %p')   # same date, just time
 
                 order_data.append({
                     'id': order_id,
@@ -418,8 +422,8 @@ class OrdersPageView(TemplateView):
                     'total': float(order.total),
                     'deliveryTime': '10:00 AM - 2:00 PM',  # placeholder
                     'deliveryAddress': order.address,
-                    'deliveryDate': formatted_date,
-                    'deliveryTime': time_window,
+                    'deliveryDate': formatted_start,
+                    'deliveryTime': f"{formatted_start} – {formatted_end}",
                 })
 
             context['orders_data'] = order_data
