@@ -368,8 +368,8 @@ class CheckoutPageView(LoginRequiredMixin, TemplateView):
 
         context['cart_items'] = items
         context['cart_total'] = total
-        context['delivery'] = 500
-        context['grand_total'] = total + 500
+        context['delivery'] = 50
+        context['grand_total'] = total + 50
 
         # ---- Fetch last order for logged-in user ----
         if self.request.user.is_authenticated:
