@@ -1,17 +1,9 @@
 {% extends "admin_base.html" %}
 {% block title %}FUTA.SmartFarm - Categories Management{% endblock %}
 {% load static %}
+{% block breadcrumb %}Categories{% endblock %}
 
 {% block content %}
-<main class="main-content">
-    <header class="topbar">
-        <div class="page-title">
-            <button class="hamburger-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-            <h1>Categories</h1>
-            <p>Manage product categories</p>
-        </div>
-        
-    </header>
 
     <!-- Filter Bar -->
     <div class="filter-bar">
@@ -95,7 +87,6 @@
             {% endif %}
         </div>
     </div>
-</main>
 
 <!-- ========================== -->
 <!-- ADD CATEGORY MODAL -->

@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (
     CategoriesAdminView, DashboardView, DeliveriesAdminView, DiscountsAdminView, OrdersAdminView, ProductsAdminView, admin_add_category, 
     admin_add_product, admin_bulk_discount, admin_delete_category, admin_delete_order, 
-    admin_delete_product, admin_update, admin_update_category, customer_orders_api, CustomersAdminView
+    admin_delete_product, admin_update, admin_update_category, customer_orders_api, CustomersAdminView, mark_admin_notifications_read, pending_orders_count_api
 )
 
 app_name = "business_admin"
@@ -30,4 +30,8 @@ urlpatterns = [
     path('api/update-category/', admin_update_category, name='admin_update_category'),
     path('api/delete-category/', admin_delete_category, name='admin_delete_category'),
     path('api/bulk-discount/', admin_bulk_discount, name='admin_bulk_discount'),
+
+    path('api/mark-admin-notifications-read/', mark_admin_notifications_read, name='mark_admin_notifications_read'),
+    path('api/pending-orders-count/', pending_orders_count_api, name='pending_orders_count_api'),
+
 ]

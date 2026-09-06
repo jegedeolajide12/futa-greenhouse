@@ -5,6 +5,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>FUTA SmartFarm · Admin Dashboard</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
@@ -35,7 +36,12 @@
         <nav class="sidebar-nav">
             <div class="nav-label">Main</div>
             <a href="{% url 'business_admin:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"><i class="fas fa-chart-pie"></i> Dashboard</a>
-            <a href="{% url 'business_admin:orders' %}" class="{% if request.resolver_match.url_name == 'orders' %}active{% endif %}"><i class="fas fa-shopping-bag"></i> Orders <span class="badge">12</span></a>
+            <a href="{% url 'business_admin:orders' %}" class="{% if request.resolver_match.url_name == 'orders' %}active{% endif %}">
+                <i class="fas fa-shopping-bag"></i> Orders
+                {% if pending_orders_count > 0 %}
+                    <span class="badge" id="orderBadge">{{ pending_orders_count }}</span>
+                {% endif %}
+            </a>
             <a href="{% url 'business_admin:products' %}" class="{% if request.resolver_match.url_name == 'products' %}active{% endif %}">
                 <i class="fas fa-pepper-hot"></i> Products
             </a>
@@ -145,13 +151,106 @@
     
     <script src="{% static "js/admin/admin.js" %}"></script>
     <script>
+        let markReadTimeout = null; // store the timeout ID
+
         document.querySelector('.notification').addEventListener('click', function(e) {
             e.stopPropagation();
             const dropdown = document.getElementById('adminNotifDropdown');
-            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+            const isOpen = dropdown.style.display === 'block';
+
+            if (isOpen) {
+                // Close dropdown and clear any pending timer
+                dropdown.style.display = 'none';
+                if (markReadTimeout) {
+                    clearTimeout(markReadTimeout);
+                    markReadTimeout = null;
+                }
+            } else {
+                // Open dropdown
+                dropdown.style.display = 'block';
+
+                // Cancel any previous timer (just in case)
+                if (markReadTimeout) {
+                    clearTimeout(markReadTimeout);
+                    markReadTimeout = null;
+                }
+
+                // Mark as read after 2 seconds
+                markReadTimeout = setTimeout(function() {
+                    const csrftoken = document.querySelector('[name=csrf-token]')?.content || getCSRFToken();
+
+                    fetch("{% url 'business_admin:mark_admin_notifications_read' %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrftoken,
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Hide the badge
+                            const badge = document.querySelector('.notification .badge');
+                            if (badge) {
+                                badge.style.display = 'none';
+                            }
+                            // Optionally update the count elsewhere (e.g., sidebar badge)
+                        }
+                    })
+                    .catch(err => console.error('Error marking notifications as read:', err))
+                    .finally(() => {
+                        markReadTimeout = null;
+                    });
+                }, 2000); // 2 seconds delay
+            }
         });
+
+        // Helper to get CSRF token from cookies (fallback)
+        function getCSRFToken() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'csrftoken') return value;
+            }
+            return '';
+        }
+
+        // Close dropdown when clicking outside
         document.addEventListener('click', function() {
-            document.getElementById('adminNotifDropdown').style.display = 'none';
+            const dropdown = document.getElementById('adminNotifDropdown');
+            if (dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+                // Cancel any pending timer when closing by outside click
+                if (markReadTimeout) {
+                    clearTimeout(markReadTimeout);
+                    markReadTimeout = null;
+                }
+            }
+        });
+    </script>
+    <script>
+        function updateOrderBadge() {
+            fetch("{% url 'business_admin:pending_orders_count_api' %}")
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('orderBadge');
+                    if (badge) {
+                        const count = data.count;
+                        badge.textContent = count;
+                        badge.style.display = count > 0 ? '' : 'none';
+                    }
+                })
+                .catch(err => console.error('Error fetching order count:', err));
+        }
+
+        // Update every 5 seconds
+        setInterval(updateOrderBadge, 5000);
+
+        // Also update when the notification dropdown is opened (if you want)
+        document.querySelector('.notification')?.addEventListener('click', function() {
+            // Update after a short delay, in case a new order just came in
+            setTimeout(updateOrderBadge, 1000);
         });
     </script>
 </body>

@@ -87,22 +87,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-// ========== ADD BUTTONS ==========
-document.querySelectorAll('.table-actions .btn-sm').forEach(btn => {
-    btn.addEventListener('click', function() {
-        alert('➕ Add new item form would open here.');
-    });
-});
-
-// ========== NOTIFICATION CLICK ==========
-document.querySelector('.notification')?.addEventListener('click', function() {
-    alert('🔔 You have 3 unread notifications.');
-});
-
-// ========== ADMIN PROFILE CLICK ==========
-document.querySelector('.admin-profile')?.addEventListener('click', function() {
-    alert('👤 Admin profile settings would open here.');
-});
-
 
 

@@ -1,17 +1,8 @@
 {% extends "admin_base.html" %}
 {% block title %}FUTA.SmartFarm - Products Management{% endblock %}
 {% load static %}
-
+{% block breadcrumb %}Products{% endblock %}
 {% block content %}
-<main class="main-content">
-    <header class="topbar">
-        <div class="page-title">
-            <button class="hamburger-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-            <h1>Products</h1>
-            <p>Manage your product inventory</p>
-        </div>
-        
-    </header>
 
     <!-- Filter Bar -->
     <div class="filter-bar">
@@ -139,7 +130,6 @@
             {% endif %}
         </div>
     </div>
-</main>
 
 <!-- ========================== -->
 <!-- EDIT MODAL (reused from dashboard) -->

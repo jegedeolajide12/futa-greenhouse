@@ -97,6 +97,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 'django.template.context_processors.media',
                 'products.context_processors.notification_count',  # Custom context processor for notifications
+                'business_admin.context_processors.admin_order_badge',
             ],
         },
     },

@@ -1,18 +1,8 @@
 {% extends "admin_base.html" %}
 {% block title %}FUTA.SmartFarm - Deliveries Management{% endblock %}
 {% load static %}
-
+{% block breadcrumb %}Deliveries{% endblock %}
 {% block content %}
-<main class="main-content">
-    <header class="topbar">
-        <div class="page-title">
-            <button class="hamburger-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
-            <h1>Deliveries</h1>
-            <p>Manage pending and in‑transit orders</p>
-        </div>
-        
-    </header>
-
     <!-- Filter Bar -->
     <div class="filter-bar">
         <form id="filterForm" method="get" class="filter-form">
@@ -118,7 +108,6 @@
             {% endif %}
         </div>
     </div>
-</main>
 
 <!-- ========================== -->
 <!-- EDIT MODAL (reused) -->

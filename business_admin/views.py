@@ -14,6 +14,22 @@ from products.models import Order, OrderItem, Product, Category, Notification
 from .mixins import StaffRequiredMixin, staff_required
 
 
+@require_POST
+@login_required
+@staff_required
+def mark_admin_notifications_read(request):
+    # Mark all unread admin notifications as read
+    updated = Notification.objects.filter(is_admin=True, is_read=False).update(is_read=True)
+    return JsonResponse({'success': True, 'marked_count': updated})
+
+
+
+@require_GET
+@staff_required
+def pending_orders_count_api(request):
+    count = Order.objects.filter(status='pending').count()
+    return JsonResponse({'count': count})
+
 
 class DashboardView(StaffRequiredMixin, TemplateView):
     template_name = "business_admin/dashboard.html"
